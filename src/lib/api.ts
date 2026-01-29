@@ -19,9 +19,11 @@ const api = axios.create({
 // Request interceptor for API calls
 api.interceptors.request.use(
   (config) => {
-    const token = Cookies.get("token");
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+    if (typeof window !== "undefined") {
+      const token = Cookies.get("token");
+      if (token) {
+        config.headers.Authorization = `Bearer ${token}`;
+      }
     }
     return config;
   },
@@ -40,10 +42,12 @@ api.interceptors.response.use(
     
     // Handle 401 Unauthorized
     if (error.response?.status === 401 && !originalRequest._retry) {
-      // Clear auth and redirect to login if needed
-      Cookies.remove("token");
-      Cookies.remove("role");
-      // Optional: window.location.href = '/login';
+      if (typeof window !== "undefined") {
+        // Clear auth and redirect to login if needed
+        Cookies.remove("token");
+        Cookies.remove("role");
+        // Optional: window.location.href = '/login';
+      }
     }
     
     return Promise.reject(error);

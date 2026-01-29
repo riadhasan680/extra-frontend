@@ -46,15 +46,15 @@ export default function ProductsPage() {
         <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4">
           {products.map((product) => (
             <Card key={product.id} className="flex flex-col overflow-hidden transition-all hover:shadow-lg">
-              {product.thumbnail && (
-                <div className="aspect-video w-full overflow-hidden bg-gray-100">
-                  <img 
-                    src={product.thumbnail} 
+              <div className="relative aspect-[4/3] w-full overflow-hidden bg-gray-100 dark:bg-gray-800">
+                {product.imageUrl && (
+                  <img
+                    src={product.imageUrl}
                     alt={product.title}
-                    className="h-full w-full object-cover transition-transform hover:scale-105"
+                    className="h-full w-full object-cover transition-transform duration-300 group-hover:scale-110"
                   />
-                </div>
-              )}
+                )}
+              </div>
               <CardHeader>
                 <CardTitle className="line-clamp-1">{product.title}</CardTitle>
               </CardHeader>

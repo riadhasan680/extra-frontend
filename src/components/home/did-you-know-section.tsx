@@ -2,7 +2,7 @@ import Image from "next/image";
 
 export function DidYouKnowSection() {
   return (
-    <section className="py-20" style={{ backgroundColor: "#dad8f9" }}>
+    <section className="py-20 bg-[#dad8f9]">
       <div className="container mx-auto max-w-6xl px-6">
         <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
           Did you know?

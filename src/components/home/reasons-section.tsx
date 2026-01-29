@@ -25,7 +25,7 @@ export function ReasonsSection() {
   ];
 
   return (
-    <section className="py-20" style={{ backgroundColor: "#dad8f9" }}>
+    <section className="py-20 bg-[#dad8f9]">
       <div className="container mx-auto max-w-6xl px-6">
         <div className="grid items-center gap-16 md:grid-cols-2">
           {/* Left - Big Twitch Logo */}

@@ -46,12 +46,12 @@ export function PremiumSidebar({
       {/* Sidebar */}
       <aside
         className={cn(
-          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r-2 border-purple-100 bg-white shadow-2xl transition-transform duration-300 lg:translate-x-0",
+          "fixed inset-y-0 left-0 z-50 flex w-72 flex-col border-r-2 border-purple-100 bg-white shadow-2xl transition-transform duration-300 lg:translate-x-0 dark:border-purple-900 dark:bg-gray-900",
           isMobileOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
         {/* Header */}
-        <div className="relative overflow-hidden border-b-2 border-purple-100 bg-linear-to-br from-purple-500 to-purple-700 p-6">
+        <div className="relative overflow-hidden border-b-2 border-purple-100 bg-linear-to-br from-purple-500 to-purple-700 p-6 dark:border-purple-900">
           {/* Decorative elements */}
           <div className="absolute -top-8 -right-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
           <div className="absolute -bottom-8 -left-8 h-32 w-32 rounded-full bg-white/10 blur-2xl" />
@@ -100,7 +100,7 @@ export function PremiumSidebar({
                   "group relative flex items-center gap-3 rounded-xl px-4 py-3.5 text-sm font-medium transition-all duration-200",
                   isActive
                     ? "bg-linear-to-r from-purple-500 to-purple-600 text-white shadow-lg shadow-purple-500/30"
-                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-700"
+                    : "text-gray-700 hover:bg-purple-50 hover:text-purple-700 dark:text-gray-300 dark:hover:bg-purple-900/20 dark:hover:text-purple-400"
                 )}
               >
                 {/* Active indicator */}
@@ -114,7 +114,7 @@ export function PremiumSidebar({
                     "flex h-9 w-9 items-center justify-center rounded-lg transition-all",
                     isActive
                       ? "bg-white/20"
-                      : "bg-gray-100 group-hover:bg-purple-100"
+                      : "bg-gray-100 group-hover:bg-purple-100 dark:bg-gray-800 dark:group-hover:bg-purple-900/40"
                   )}
                 >
                   <Icon
@@ -122,7 +122,7 @@ export function PremiumSidebar({
                       "h-5 w-5 transition-transform group-hover:scale-110",
                       isActive
                         ? "text-white"
-                        : "text-gray-600 group-hover:text-purple-600"
+                        : "text-gray-600 group-hover:text-purple-600 dark:text-gray-400 dark:group-hover:text-purple-400"
                     )}
                   />
                 </div>
@@ -136,7 +136,7 @@ export function PremiumSidebar({
                       "rounded-full px-2 py-0.5 text-xs font-semibold",
                       isActive
                         ? "bg-white/20 text-white"
-                        : "bg-purple-100 text-purple-700"
+                        : "bg-purple-100 text-purple-700 dark:bg-purple-900/40 dark:text-purple-300"
                     )}
                   >
                     {item.badge}
@@ -154,11 +154,11 @@ export function PremiumSidebar({
 
         {/* Footer */}
         {onLogout && (
-          <div className="border-t-2 border-purple-100 p-4">
+          <div className="border-t-2 border-purple-100 p-4 dark:border-purple-900">
             <Button
               onClick={onLogout}
               variant="outline"
-              className="w-full justify-start gap-3 border-2 border-purple-200 bg-white text-gray-700 transition-all hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700"
+              className="cursor-pointer w-full justify-start gap-3 border-2 border-purple-200 bg-white text-gray-700 transition-all hover:border-purple-300 hover:bg-purple-50 hover:text-purple-700 dark:border-purple-800 dark:bg-gray-900 dark:text-gray-300 dark:hover:bg-purple-900/20"
             >
               <svg
                 className="h-5 w-5"

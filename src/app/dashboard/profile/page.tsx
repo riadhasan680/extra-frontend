@@ -15,7 +15,7 @@ import { Label } from "@/components/ui/label";
 import { Check, Copy, Loader2, User as UserIcon } from "lucide-react";
 import { authService } from "@/services/auth.service";
 import { User } from "@/types/api";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProfilePage() {
   const [user, setUser] = useState<User | null>(null);

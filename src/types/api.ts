@@ -10,17 +10,46 @@ export interface User {
   // Backend specific fields
   commission_balance?: number;
   total_sales?: number;
+
+  // Profile fields
+  referral_code?: string;
+  first_name?: string;
+  last_name?: string;
+}
+
+export interface Image {
+  id: string;
+  url: string;
+}
+
+export interface ProductVariant {
+  id: string;
+  title: string;
+  price: number;
+  options?: any[];
+  product?: Product;
+  prices?: {
+    id: string;
+    currency_code: string;
+    amount: number;
+  }[];
+  metadata?: Record<string, any>;
 }
 
 export interface Product {
   id: string;
   title: string; // Changed from name to title per API
+  subtitle?: string;
   description: string;
   price: number;
   commission_rate: number; // Changed from commissionRate per API
   status?: "active" | "draft" | "archived";
   imageUrl?: string;
+  thumbnail?: string;
+  images?: Image[];
   createdAt?: string;
+  variants?: ProductVariant[];
+  metadata?: Record<string, any>;
   
   // Legacy support during migration (optional)
   name?: string;
@@ -33,7 +62,7 @@ export interface Order {
   userId: string; // The affiliate who referred
   amount: number;
   commissionAmount: number;
-  status: "pending" | "completed" | "refunded";
+  status: "pending" | "completed" | "refunded" | "canceled";
   createdAt: string;
 }
 

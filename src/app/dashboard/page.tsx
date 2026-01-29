@@ -13,7 +13,7 @@ import {
   CreditCard,
   TrendingUp,
 } from "lucide-react";
-import { dashboardService } from "@/services/dashboard.service";
+import { storeService } from "@/services/store.service";
 import { DashboardStats, Wallet } from "@/types/api";
 const formatCurrency = (amount: number) => {
   return new Intl.NumberFormat('en-US', {
@@ -34,8 +34,8 @@ export default function UserDashboard() {
   const fetchData = async () => {
     try {
       const [statsData, walletData] = await Promise.all([
-        dashboardService.getStats(),
-        dashboardService.getWallet().catch(() => null) // Handle wallet failure gracefully
+        storeService.getDashboardStats(),
+        storeService.getWallet().catch(() => null) // Handle wallet failure gracefully
       ]);
       setStats(statsData);
       setWallet(walletData);

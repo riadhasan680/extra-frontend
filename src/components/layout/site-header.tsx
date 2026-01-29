@@ -138,7 +138,7 @@ export function SiteHeader() {
           {/* Mobile Menu Button */}
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
-            className={`transition-all duration-300 md:hidden ${
+            className={`cursor-pointer transition-all duration-300 md:hidden ${
               isScrolled ? "text-gray-900 dark:text-white" : "text-white"
             }`}
           >
@@ -156,14 +156,14 @@ export function SiteHeader() {
             <nav className="flex flex-col gap-4">
               <Link
                 href="#"
-                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-purple-600 dark:text-white"
+                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-purple-600 dark:text-white dark:hover:text-purple-400"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Twitch Promotion
               </Link>
               <Link
                 href="#"
-                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-purple-600 dark:text-white"
+                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-purple-600 dark:text-white dark:hover:text-purple-400"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Contact Us
@@ -173,7 +173,7 @@ export function SiteHeader() {
                 {user ? (
                   <Link
                     href="/dashboard"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-100 py-3 text-purple-700"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-100 py-3 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <LayoutDashboard className="h-5 w-5" />
@@ -183,14 +183,14 @@ export function SiteHeader() {
                   <>
                     <Link
                       href="/login"
-                      className="w-full rounded-lg border border-purple-200 py-3 text-center font-semibold text-purple-700 hover:bg-purple-50"
+                      className="w-full rounded-lg border border-purple-200 py-3 text-center font-semibold text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-900/30"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
                     </Link>
                     <Link
                       href="/register"
-                      className="w-full rounded-lg bg-purple-600 py-3 text-center font-semibold text-white hover:bg-purple-700"
+                      className="w-full rounded-lg bg-purple-600 py-3 text-center font-semibold text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign Up Free

@@ -1,16 +1,123 @@
+"use client";
+
 import { Button } from "@/components/ui/button";
-import { ShoppingCart } from "lucide-react";
+import { ShoppingCart, Loader2 } from "lucide-react";
 import Link from "next/link";
 import { Plane, RotateCcw, ThumbsUp } from "lucide-react";
+import { useState, useEffect } from "react";
+import { useToast } from "@/hooks/use-toast";
+import { storeService } from "@/services/store.service";
+import { Product, ProductVariant } from "@/types/api";
+import { useRouter } from "next/navigation";
 
-export function CtaProductSection() {
+export function CtaProductSection({ initialProduct }: { initialProduct?: Product | null }) {
+  const [product, setProduct] = useState<Product | null>(initialProduct || null);
+  const [loading, setLoading] = useState(!initialProduct);
+  const [isBuying, setIsBuying] = useState(false);
+  
+  const { toast } = useToast();
+  const router = useRouter();
+
+  // Fallback fetch if no initial product provided
+  useEffect(() => {
+    if (initialProduct) return;
+
+    const fetchProduct = async () => {
+      try {
+        setLoading(true);
+        const products = await storeService.getProducts();
+        const foundProduct = products.length > 1 ? products[1] : products[0]; 
+        
+        if (foundProduct) {
+          setProduct(foundProduct);
+        }
+      } catch (error) {
+        console.error("Failed to fetch CTA product", error);
+      } finally {
+        setLoading(false);
+      }
+    };
+
+    fetchProduct();
+  }, [initialProduct]);
+
+  const handleBuyItNow = async () => {
+    if (!product) return;
+
+    try {
+      setIsBuying(true);
+
+      // Step 1: Create Cart
+      let regionId: string | undefined;
+      try {
+        const regions = await storeService.getRegions();
+        const usRegion = regions.find((r: any) => r.countries?.some((c: any) => c.iso_2 === 'us'));
+        const defaultRegion = regions[0];
+        
+        if (usRegion) {
+          regionId = usRegion.id;
+        } else if (defaultRegion) {
+          regionId = defaultRegion.id;
+        }
+      } catch (e) {
+        console.warn("Failed to fetch regions", e);
+      }
+
+      // Step 2: Add Variant to Cart
+      if (!product.variants || product.variants.length === 0) {
+        throw new Error("Product has no variants available");
+      }
+      const variantId = product.variants[0].id;
+
+      let cart;
+      try {
+        cart = await storeService.createCart(regionId ? { region_id: regionId } : undefined);
+        await storeService.addToCart(cart.id, variantId, 1);
+      } catch (cartError: any) {
+         const errMsg = cartError.response?.data?.message || "";
+         if (errMsg.includes("stock location") || errMsg.includes("Sales Channel")) {
+             console.warn("First attempt failed, retrying without explicit region...", cartError);
+             cart = await storeService.createCart(); // Retry without region
+             await storeService.addToCart(cart.id, variantId, 1);
+         } else {
+             throw cartError;
+         }
+      }
+      
+      // Step 3: Apply Affiliate (if exists in localStorage)
+      const affiliateData = localStorage.getItem("affiliate_ref");
+      if (affiliateData) {
+        const { value: refCode, expiry } = JSON.parse(affiliateData);
+        if (new Date().getTime() < expiry) {
+          try {
+            await storeService.attachAffiliate(cart.id, refCode);
+          } catch (err) {
+            console.error("Failed to attach affiliate code", err);
+          }
+        }
+      }
+
+      // Step 4: Redirect to Cart (Step 1 of flow)
+      router.push(`/cart?cart_id=${cart.id}`);
+
+    } catch (error) {
+      console.error("Buy It Now failed", error);
+      toast({
+        title: "Error",
+        description: "Failed to process request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBuying(false);
+    }
+  };
+
   return (
     <section className="relative overflow-hidden">
       {/* Purple Background with Twitch Pattern */}
       <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 py-20">
         {/* Twitch Logo Pattern Background */}
         <div className="pointer-events-none absolute inset-0 opacity-10">
-          <div className="h-full w-full bg-[url('/twitch-pattern.png')] bg-repeat opacity-20"></div>
           {/* Fallback pattern if image not available */}
           <div className="grid grid-cols-12 gap-8 p-8 opacity-20">
             {Array.from({ length: 48 }).map((_, i) => (
@@ -50,19 +157,12 @@ export function CtaProductSection() {
             <div className="relative flex justify-center">
               <div className="group perspective-1000 relative h-72 w-56 -rotate-3 transform transition-transform duration-500 hover:rotate-0">
                 {/* CSS 3D Box Mockup */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-pink-400/30 bg-gradient-to-br from-[#9c2a8c] to-[#6a1b5f] p-6 text-white shadow-2xl">
-                  <div className="mb-4 text-xs font-bold tracking-widest text-pink-200 opacity-80">
-                    UNLIMITED
-                  </div>
-                  <h3 className="mb-2 text-center text-2xl leading-tight font-black">
-                    TWITCH STREAM
-                  </h3>
-                  <h3 className="mb-6 text-center text-2xl leading-tight font-black text-pink-100">
-                    BUNDLE
-                  </h3>
-                  <div className="rounded bg-white/90 px-3 py-1.5 text-center text-[10px] font-bold text-[#9c2a8c] uppercase shadow-lg">
-                    Recurring Plan
-                  </div>
+                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-pink-400/30 bg-gradient-to-br from-[#9c2a8c] to-[#6a1b5f] p-1 text-white shadow-2xl overflow-hidden">
+                   <img 
+                     src={product?.images && product.images.length > 0 ? product.images[0].url : "/product-placeholder.svg"} 
+                     alt={product?.title || "Product"}
+                     className="h-full w-full object-cover rounded"
+                   />
                 </div>
                 {/* Shadow */}
                 <div className="absolute right-2 -bottom-6 left-2 h-4 rounded-[100%] bg-black/30 blur-lg"></div>
@@ -98,15 +198,21 @@ export function CtaProductSection() {
 
               {/* Buy Button */}
               <div>
-                <Link href="/cart">
-                  <Button className="h-12 w-full rounded-[4px] bg-[#9c2a8c] text-lg font-medium text-white shadow-md transition-all hover:bg-[#852277]">
+                <Button 
+                  onClick={handleBuyItNow}
+                  disabled={!product || isBuying}
+                  className="cursor-pointer h-12 w-full rounded-[4px] bg-[#9c2a8c] text-lg font-medium text-white shadow-md transition-all hover:bg-[#852277] disabled:opacity-50 disabled:cursor-not-allowed"
+                >
+                  {isBuying ? (
+                    <Loader2 className="mr-2 h-5 w-5 animate-spin" />
+                  ) : (
                     <ShoppingCart className="mr-2 h-5 w-5" />
-                    Buy It Now
-                  </Button>
-                </Link>
+                  )}
+                  {isBuying ? "Processing..." : "Buy It Now"}
+                </Button>
 
                 <Link
-                  href="#details"
+                  href={product ? `/products/${product.id}` : "#details"}
                   className="mt-4 inline-flex items-center gap-1 text-sm text-gray-500 underline decoration-gray-400 hover:text-purple-700"
                 >
                   Full details <span className="no-underline">→</span>

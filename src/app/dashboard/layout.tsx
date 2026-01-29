@@ -18,6 +18,11 @@ const sidebarItems: SidebarItem[] = [
     icon: LayoutDashboard,
   },
   {
+    title: "Sales",
+    href: "/dashboard/sales",
+    icon: DollarSign,
+  },
+  {
     title: "My Orders",
     href: "/dashboard/orders",
     icon: ShoppingCart,
@@ -66,7 +71,7 @@ export default function UserLayout({
   };
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
       <PremiumSidebar
         items={sidebarItems}
         title="Extra Marketing"

@@ -1,21 +1,21 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { useParams } from "next/navigation";
+import { useParams, useRouter } from "next/navigation";
 import { storeService } from "@/services/store.service";
-import { Product } from "@/types/api";
+import { Product, ProductVariant } from "@/types/api";
 import { Button } from "@/components/ui/button";
-import { Loader2, ArrowLeft, ShoppingCart, Check } from "lucide-react";
+import { Loader2, ArrowLeft, ShoppingCart, Check, Zap } from "lucide-react";
 import Link from "next/link";
-import { useCart } from "@/context/cart-context";
-import { useToast } from "@/components/ui/toast";
+import { useToast } from "@/hooks/use-toast";
 
 export default function ProductDetailsPage() {
   const params = useParams();
+  const router = useRouter();
   const id = params.id as string;
   const [product, setProduct] = useState<Product | null>(null);
   const [loading, setLoading] = useState(true);
-  const { addItem } = useCart();
+  const [isBuying, setIsBuying] = useState(false);
   const { toast } = useToast();
 
   useEffect(() => {
@@ -32,20 +32,48 @@ export default function ProductDetailsPage() {
     if (id) fetchProduct();
   }, [id]);
 
-  const handleAddToCart = () => {
+  const handleBuyItNow = async () => {
     if (!product) return;
-    
-    addItem({
-      id: product.id,
-      title: product.title,
-      price: Number(product.price) || 0,
-      image: product.thumbnail
-    });
 
-    toast({
-      title: "Added to cart",
-      description: `${product.title} has been added to your cart.`,
-    });
+    try {
+      setIsBuying(true);
+
+      // Step 1: Create Cart
+      const cart = await storeService.createCart();
+      
+      // Step 2: Add Variant to Cart (Default to first variant or product ID)
+      const variantId = product.variants && product.variants.length > 0 
+        ? product.variants[0].id 
+        : product.id;
+        
+      await storeService.addToCart(cart.id, variantId, 1);
+
+      // Step 3: Apply Affiliate (if exists in localStorage)
+      const affiliateData = localStorage.getItem("affiliate_ref");
+      if (affiliateData) {
+        const { value: refCode, expiry } = JSON.parse(affiliateData);
+        if (new Date().getTime() < expiry) {
+          try {
+            await storeService.attachAffiliate(cart.id, refCode);
+          } catch (err) {
+            console.error("Failed to attach affiliate code", err);
+          }
+        }
+      }
+
+      // Step 4: Redirect to Checkout
+      router.push(`/checkout?cart_id=${cart.id}`);
+
+    } catch (error) {
+      console.error("Buy It Now failed", error);
+      toast({
+        title: "Error",
+        description: "Failed to process request. Please try again.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsBuying(false);
+    }
   };
 
   if (loading) {
@@ -78,9 +106,9 @@ export default function ProductDetailsPage() {
       <div className="grid gap-8 md:grid-cols-2">
         {/* Product Image */}
         <div className="overflow-hidden rounded-xl border bg-gray-50 dark:bg-gray-900">
-           {product.thumbnail ? (
+           {product.imageUrl ? (
              <img 
-               src={product.thumbnail} 
+               src={product.imageUrl} 
                alt={product.title}
                className="h-full w-full object-cover"
              />
@@ -99,16 +127,33 @@ export default function ProductDetailsPage() {
               {product.price ? `$${(Number(product.price) / 100).toFixed(2)}` : "Price on Request"}
             </p>
           </div>
-
+          
           <div className="prose dark:prose-invert">
             <p>{product.description}</p>
           </div>
 
-          <div className="mt-auto pt-6">
-            <Button size="lg" className="w-full md:w-auto" onClick={handleAddToCart}>
-              <ShoppingCart className="mr-2 h-5 w-5" />
-              Add to Cart
+          <div className="mt-8">
+            <Button 
+              size="lg" 
+              className="w-full bg-purple-600 hover:bg-purple-700"
+              onClick={handleBuyItNow}
+              disabled={isBuying}
+            >
+              {isBuying ? (
+                <>
+                  <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                  Processing...
+                </>
+              ) : (
+                <>
+                  <Zap className="mr-2 h-4 w-4" />
+                  Buy It Now
+                </>
+              )}
             </Button>
+            <p className="mt-2 text-center text-sm text-gray-500">
+              Instant checkout. No account required.
+            </p>
           </div>
         </div>
       </div>

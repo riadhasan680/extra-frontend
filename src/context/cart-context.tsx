@@ -16,6 +16,7 @@ interface CartContextType {
   items: CartItem[];
   addItem: (item: CartItem) => Promise<void>;
   removeItem: (id: string) => void;
+  updateQuantity: (id: string, quantity: number) => void;
   clearCart: () => void;
   total: number;
   loading: boolean;
@@ -33,7 +34,19 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     const storedCart = localStorage.getItem("cart_items");
     const storedCartId = localStorage.getItem("cart_id");
     if (storedCart) {
-      setItems(JSON.parse(storedCart));
+      try {
+        const parsedItems = JSON.parse(storedCart);
+        if (Array.isArray(parsedItems)) {
+          // Ensure all items have a valid quantity
+          const validItems = parsedItems.map((item: any) => ({
+            ...item,
+            quantity: typeof item.quantity === 'number' && item.quantity > 0 ? item.quantity : 1
+          }));
+          setItems(validItems);
+        }
+      } catch (e) {
+        console.error("Failed to parse cart items", e);
+      }
     }
     if (storedCartId) {
       setCartId(storedCartId);
@@ -54,11 +67,13 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
         const cart = await storeService.createCart();
         currentCartId = cart.id;
         setCartId(currentCartId);
-        localStorage.setItem("cart_id", currentCartId);
+        if (currentCartId) {
+          localStorage.setItem("cart_id", currentCartId);
+        }
 
         // 2. Attach Affiliate Code if exists
         const storedRef = localStorage.getItem("affiliate_ref");
-        if (storedRef) {
+        if (storedRef && currentCartId) {
           try {
             const { value, expiry } = JSON.parse(storedRef);
             if (new Date().getTime() < expiry) {
@@ -77,7 +92,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
       // but in real app we need valid variant_id)
       // For this task, we will try to call the API but fallback to local if it fails 
       // (since we might not have valid variant IDs from the product list if they are just products)
-      if (newItem.variant_id) {
+      if (newItem.variant_id && currentCartId) {
          try {
             await storeService.addToCart(currentCartId, newItem.variant_id, 1);
          } catch (e) {
@@ -109,6 +124,14 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
     setItems((prev) => prev.filter((item) => item.id !== id));
   };
 
+  const updateQuantity = (id: string, quantity: number) => {
+    setItems((prev) =>
+      prev.map((item) =>
+        item.id === id ? { ...item, quantity: Math.max(1, quantity) } : item
+      )
+    );
+  };
+
   const clearCart = () => {
     setItems([]);
     setCartId(null);
@@ -123,7 +146,7 @@ export function CartProvider({ children }: { children: React.ReactNode }) {
 
   return (
     <CartContext.Provider
-      value={{ items, addItem, removeItem, clearCart, total, loading }}
+      value={{ items, addItem, removeItem, updateQuantity, clearCart, total, loading }}
     >
       {children}
     </CartContext.Provider>

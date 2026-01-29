@@ -19,7 +19,7 @@ import {
   TableHeader,
   TableRow,
 } from "@/components/ui/table";
-import { dashboardService } from "@/services/dashboard.service";
+import { storeService } from "@/services/store.service";
 import { Wallet, Commission, Payout } from "@/types/api";
 import { formatCurrency, formatDate } from "@/lib/utils";
 import { Loader2 } from "lucide-react";
@@ -38,9 +38,9 @@ export default function WalletPage() {
   const fetchData = async () => {
     try {
       const [walletData, commissionsData, payoutsData] = await Promise.all([
-        dashboardService.getWallet(),
-        dashboardService.getCommissions().catch(() => []),
-        dashboardService.getPayouts().catch(() => [])
+        storeService.getWallet(),
+        storeService.getCommissions().catch(() => []),
+        storeService.getPayouts().catch(() => [])
       ]);
       setWallet(walletData);
       setCommissions(commissionsData || []);
@@ -78,7 +78,10 @@ export default function WalletPage() {
 
     setRequestLoading(true);
     try {
-      await dashboardService.requestPayout(Number(amount));
+      await storeService.requestPayout({ 
+        amount: Number(amount),
+        method: method || "Default" 
+      });
       addToast({
         type: "success",
         title: "Request Submitted",
