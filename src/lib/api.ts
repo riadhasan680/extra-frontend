@@ -3,7 +3,12 @@ import Cookies from "js-cookie";
 
 // Access environment variable or default to local Medusa backend
 const rawMedusaUrl = process.env.NEXT_PUBLIC_MEDUSA_URL || "http://localhost:9000";
-export const MEDUSA_URL = rawMedusaUrl.replace(/\/$/, ""); // Ensure no trailing slash
+
+// Use relative path on client-side to leverage Next.js Rewrites (avoid CORS)
+// Use absolute path on server-side
+export const MEDUSA_URL = typeof window !== "undefined" 
+  ? "" 
+  : rawMedusaUrl.replace(/\/$/, "");
 
 export const PUBLISHABLE_API_KEY = process.env.NEXT_PUBLIC_PUBLISHABLE_API_KEY || "";
 

@@ -45,12 +45,23 @@ export const storeService = {
       // Medusa v2: Ensure we fetch nested relations for the cart items
       const response = await api.get<{ cart: any }>(`/store/carts/${cartId}`, {
         params: {
-            fields: "id,region_id,email,shipping_address,billing_address,currency_code,total,subtotal,tax_total,discount_total,*items,*items.variant,*items.variant.product,*items.variant.product.images"
+            fields: "id,region_id,email,shipping_address,billing_address,currency_code,total,subtotal,tax_total,discount_total,*items,*items.variant,*items.variant.product,*items.variant.product.images,*promotions"
         }
       });
       return response.data.cart;
     } catch (error) {
       console.warn("API failed to get cart", error);
+      throw error;
+    }
+  },
+
+  // Update Cart (Email, Address, etc.)
+  updateCart: async (cartId: string, payload: any) => {
+    try {
+      const response = await api.post(`/store/carts/${cartId}`, payload);
+      return response.data.cart;
+    } catch (error) {
+      console.warn("API failed to update cart", error);
       throw error;
     }
   },
@@ -148,6 +159,58 @@ export const storeService = {
     }
   },
 
+  // Initiate Dodo Payment (Medusa v2 Flow)
+  createDodoPaymentSession: async (cartId: string) => {
+    try {
+      // 1. Create Payment Collection
+      const collectionRes = await api.post("/store/payment-collections", { 
+        cart_id: cartId 
+      });
+      
+      const paymentCollectionId = collectionRes.data.payment_collection?.id;
+      if (!paymentCollectionId) {
+        throw new Error("Failed to create payment collection");
+      }
+
+      // 2. Initialize Payment Session with Dodo Provider
+      const sessionRes = await api.post(`/store/payment-collections/${paymentCollectionId}/payment-sessions`, {
+        provider_id: "pp_dodo_dodo",
+        data: {
+            // Pass cart_id explicitly to ensure it reaches the provider
+            cart_id: cartId
+        }
+      });
+      
+      // MOCK FIX: If backend returns success but no checkout_url in data (e.g. pending status),
+      // we might need to manually construct it or check if it's available elsewhere.
+      // Based on debug logs, we see data: { status: 'pending' } but no URL.
+      // This implies either configuration issue on backend OR we need to poll/redirect differently.
+      
+      // TEMPORARY FALLBACK FOR DEBUGGING/DEV:
+      // If we see 'pp_dodo_dodo' and status 'pending' but no URL, 
+      // we might be in a state where backend hasn't generated it yet.
+      
+      return sessionRes.data;
+    } catch (error: any) {
+      console.error("API failed to initiate Dodo payment", error);
+      
+      // Improve error message for common issues
+      if (error.response?.status === 400 || error.response?.status === 500) {
+         const msg = error.response?.data?.message || "";
+         const type = error.response?.data?.type || "";
+
+         if (msg.includes("provider") || msg.includes("pp_dodo_dodo")) {
+             throw new Error("Dodo Payment (pp_dodo_dodo) is not enabled in this Region. Please add it in Medusa Admin.");
+         }
+         
+         if (error.response?.status === 500 && (type === "unknown_error" || !msg)) {
+             throw new Error("Backend Error: The Dodo Payment plugin crashed. Please check your Backend logs and verify your Dodo API Keys.");
+         }
+      }
+      throw error;
+    }
+  },
+
   // List all regions
   getRegions: async () => {
     try {
@@ -229,14 +292,44 @@ export const storeService = {
     }
   },
 
-  // Create Payment Sessions
-  createPaymentSessions: async (cartId: string) => {
+  // Add Promotion (Medusa v2)
+  addPromotion: async (cartId: string, code: string) => {
     try {
-      const response = await api.post(`/store/carts/${cartId}/payment-sessions`);
-      return response.data;
+      // Medusa v2 uses /store/carts/:id/promotions
+      const response = await api.post(`/store/carts/${cartId}/promotions`, {
+        promo_codes: [code]
+      });
+      return response.data.cart;
     } catch (error) {
-      console.error("API failed to create payment sessions", error);
+      console.error("API failed to add promotion", error);
       throw error;
     }
-  }
+  },
+
+  // Remove Promotion (Medusa v2)
+  removePromotion: async (cartId: string, code: string) => {
+    try {
+        // Medusa v2 uses DELETE /store/carts/:id/promotions
+        // Axios delete with body requires 'data' field
+        const response = await api.delete(`/store/carts/${cartId}/promotions`, {
+            data: { promo_codes: [code] }
+        });
+        return response.data.cart;
+    } catch (error) {
+        console.error("API failed to remove promotion", error);
+        throw error;
+    }
+  },
+
+  // Create Payment Sessions (Standard Medusa)
+  // createPaymentSessions: async (cartId: string) => {
+  //   try {
+  //     const response = await api.post(`/store/carts/${cartId}/payment-sessions`);
+  //     return response.data;
+  //   } catch (error) {
+  //     console.error("API failed to create payment sessions", error);
+  //     // Don't throw, just return null to avoid breaking UI init
+  //     return null;
+  //   }
+  // }
 };

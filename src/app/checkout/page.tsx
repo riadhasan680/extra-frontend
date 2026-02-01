@@ -14,7 +14,7 @@ import { Separator } from "@/components/ui/separator";
 
 // Replaced next/image with standard img to prevent config/emit errors
 // import Image from "next/image"; 
-import { Loader2, CheckCircle2, ChevronRight, CreditCard, AlertCircle } from "lucide-react";
+import { Loader2, CheckCircle2, ChevronRight, CreditCard, AlertCircle, Tag, X } from "lucide-react";
 
 function CheckoutContent() {
   const searchParams = useSearchParams();
@@ -26,7 +26,8 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [completed, setCompleted] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [pageError, setPageError] = useState<string | null>(null); // Critical error preventing page load
+  const [paymentError, setPaymentError] = useState<string | null>(null); // Error during payment submission
 
   // Form states
   const [email, setEmail] = useState("");
@@ -34,9 +35,57 @@ function CheckoutContent() {
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
 
+  // Discount states
+  const [discountCode, setDiscountCode] = useState("");
+  const [promoLoading, setPromoLoading] = useState(false);
+
   // Use ref to track initialization to prevent infinite loops
   const initialized = useRef(false);
   const currentCartId = useRef<string | null>(null);
+
+  // Check for Dodo Payment Return
+  useEffect(() => {
+      const checkPaymentReturn = async () => {
+          const pendingCartId = localStorage.getItem("dodo_pending_cart_id");
+          const urlSessionId = searchParams.get("session_id"); // Dodo usually sends this
+          const isPaymentReturn = searchParams.get("payment_return") === "true";
+          
+          if (pendingCartId && (urlSessionId || searchParams.get("payment_status") || isPaymentReturn)) {
+             console.log("Detected return from Dodo Payment. Completing cart:", pendingCartId);
+             setLoading(true);
+             
+             try {
+                 const order = await storeService.completeCart(pendingCartId);
+                 // Strict check: Ensure it is an ORDER, not just a cart
+                 if (order && order.type === "order") {
+                     // Success!
+                     localStorage.removeItem("dodo_pending_cart_id");
+                     setCompleted(true);
+                 } else {
+                     console.warn("Cart completion returned non-order (likely still cart due to payment pending):", order);
+                     // Check if payment status is captured/authorized in the returned cart
+                     if (order.payment_session?.status === "authorized" || order.payment_session?.status === "captured") {
+                         // It seems authorized but order not created? Retry or assume success?
+                         // Ideally completeCart should return order.
+                         setPageError("Payment authorized but order creation failed. Please contact support.");
+                     } else {
+                         setPageError("Payment verification failed. Status: " + (order.payment_session?.status || "unknown"));
+                     }
+                 }
+             } catch (error: any) {
+                 console.error("Failed to complete cart after return:", error);
+                 // Don't clear localStorage yet, maybe transient error? 
+                 // Actually, if it failed, we probably want to let user try again.
+                 localStorage.removeItem("dodo_pending_cart_id"); 
+                 setPageError(error.message || "Payment verification failed.");
+             } finally {
+                 setLoading(false);
+             }
+          }
+      };
+      
+      checkPaymentReturn();
+  }, [searchParams]);
 
   useEffect(() => {
     // Prevent double init for same cart ID
@@ -48,18 +97,9 @@ function CheckoutContent() {
         currentCartId.current = cartId;
         
         setLoading(true);
-        setError(null);
+        setPageError(null);
 
         if (cartId) {
-             // 1. Initialize Payment Sessions (CRITICAL for fixing infinite load)
-            try {
-                console.log("Initializing payment sessions...");
-                await storeService.createPaymentSessions(cartId);
-            } catch (e) {
-                console.warn("Payment session init failed", e);
-                // We don't throw here immediately, we let getCart try to load the cart at least
-            }
-
             // 2. Try to Fetch latest cart data
             try {
               const cartData = await storeService.getCart(cartId);
@@ -71,14 +111,14 @@ function CheckoutContent() {
               }
             } catch (e) {
                console.error("Cart fetch failed", e);
-               setError("Failed to load your cart. Please try again.");
+               setPageError("Failed to load your cart. Please try again.");
             }
         } else {
-          setError("No cart ID found. Please return to home and try again.");
+          setPageError("No cart ID found. Please return to home and try again.");
         }
       } catch (error) {
         console.error("Checkout init failed", error);
-        setError("Failed to load checkout. Please try again.");
+        setPageError("Failed to load checkout. Please try again.");
       } finally {
         setLoading(false);
       }
@@ -87,33 +127,158 @@ function CheckoutContent() {
     initCheckout();
   }, [cartId]);
 
+  const handleApplyDiscount = async () => {
+    if (!discountCode.trim() || !cartId) return;
+    
+    setPromoLoading(true);
+    try {
+      const updatedCart = await storeService.addPromotion(cartId, discountCode);
+      setCart(updatedCart);
+      setDiscountCode("");
+      toast({
+        title: "Promotion applied",
+        description: "Your discount has been applied successfully.",
+      });
+    } catch (error: any) {
+      console.error("Failed to apply promotion:", error);
+      toast({
+        title: "Error",
+        description: error.response?.data?.message || "Failed to apply promotion code. Please check if it's valid.",
+        variant: "destructive",
+      });
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
+  const handleRemoveDiscount = async (code: string) => {
+    if (!cartId) return;
+    
+    setPromoLoading(true);
+    try {
+      const updatedCart = await storeService.removePromotion(cartId, code);
+      setCart(updatedCart);
+      toast({
+        title: "Promotion removed",
+        description: "The discount code has been removed.",
+      });
+    } catch (error: any) {
+      console.error("Failed to remove promotion:", error);
+      toast({
+        title: "Error",
+        description: "Failed to remove promotion code",
+        variant: "destructive",
+      });
+    } finally {
+      setPromoLoading(false);
+    }
+  };
+
   const handleCompleteOrder = async (e: React.FormEvent) => {
     e.preventDefault();
     
     try {
       setProcessing(true);
-      // Simulate network delay
-      await new Promise(resolve => setTimeout(resolve, 1500));
+      setPaymentError(null);
       
       if (cartId) {
-          try {
-             await storeService.completeCart(cartId);
-          } catch (e) {
-             console.warn("Complete cart API failed, forcing success state", e);
+          // 0. Update Cart with Email (Required for Order Creation)
+          if (email) {
+             try {
+                await storeService.updateCart(cartId, { email });
+             } catch (e) {
+                console.warn("Failed to update cart email, proceeding anyway...", e);
+             }
           }
+
+          // Call Dodo Payment API (Medusa v2 Flow)
+          console.log("Initiating Dodo Payment for cart:", cartId);
+          const response = await storeService.createDodoPaymentSession(cartId);
+          
+          // Check for checkout URL in the response
+          // Priority 1: Direct in response (unlikely but possible)
+          // Priority 2: In payment_session.data (standard)
+          // Priority 3: In payment_collection.payment_sessions array (Medusa v2 collection response)
+          
+          let checkoutUrl = response?.payment_session?.data?.checkout_url;
+          
+          if (!checkoutUrl && response?.payment_collection?.payment_sessions) {
+              // Try to find the Dodo session in the array
+              const dodoSession = response.payment_collection.payment_sessions.find(
+                  (s: any) => s.provider_id === 'pp_dodo_dodo'
+              );
+              checkoutUrl = dodoSession?.data?.checkout_url;
+          }
+
+          // Fallback: Check root level checkout_url if custom response
+          if (!checkoutUrl) {
+              checkoutUrl = response?.checkout_url;
+          }
+
+          // Fallback 2: If we see status 'pending' but no URL, it might be that the Dodo API
+          // didn't return it yet, or we need to construct it.
+          // However, for now, we will assume if the provider is pp_dodo_dodo, we might need to 
+          // manually redirect to a constructed URL if the API is failing to provide one.
+          // BUT, we can't guess the Dodo URL.
+          
+          // DEBUG: If checkoutUrl is still null, let's look closer at the response in console
+          if (!checkoutUrl) {
+             console.warn("DEBUG: Full Payment Response", JSON.stringify(response, null, 2));
+          }
+          
+          if (checkoutUrl) {
+              // DETECT BROKEN SANDBOX URL FROM BACKEND
+              // The Medusa Dodo plugin in 'sandbox' mode returns 'sandbox.dodo.com' which does not exist.
+              // It also generates a fake session ID that cannot be used on the real Test environment.
+              if (checkoutUrl.includes("sandbox.dodo.com")) {
+                  console.error("Blocked redirect to invalid Sandbox URL:", checkoutUrl);
+                  toast({
+                      title: "Backend Configuration Error",
+                      description: "Your Medusa Backend is in 'Sandbox Mode' and returned a fake URL. Please configure Dodo Payments with valid keys in your backend to use Test Mode.",
+                      variant: "destructive",
+                      duration: 10000,
+                  });
+                  setProcessing(false);
+                  return;
+              }
+
+              console.log("Redirecting to Dodo:", checkoutUrl);
+              
+              // Save cart ID to localStorage to detect return
+              localStorage.setItem("dodo_pending_cart_id", cartId);
+
+              // Redirect to Dodo Checkout
+              window.location.href = checkoutUrl;
+              return; // Stop execution here, wait for redirect
+          } else {
+              // DETAILED ERROR MESSAGE FOR USER
+              console.error("Invalid payment response:", response);
+              
+              // Check if we have a pending session without URL
+              const hasPendingDodo = response?.payment_collection?.payment_sessions?.some(
+                  (s: any) => s.provider_id === 'pp_dodo_dodo' && s.data?.status === 'pending'
+              );
+
+              if (hasPendingDodo) {
+                  throw new Error("Dodo Payment initialized but no Checkout URL returned. The Provider might be misconfigured in Backend (Missing API Key or Secret?).");
+              }
+
+              throw new Error("Could not find checkout URL in payment response. Please check if Dodo Payment is enabled in Admin.");
+          }
+      } else {
+        throw new Error("Cart ID is missing");
       }
       
-      setCompleted(true);
-      toast({
-        title: "Success",
-        description: "Order placed successfully!",
+    } catch (error: any) {
+       console.error("Payment initiation failed", error);
+       setPaymentError(error.message || "Failed to initiate payment. Please try again.");
+       setProcessing(false);
+       
+       toast({
+        title: "Payment Error",
+        description: "Could not initiate payment. Please try again.",
+        variant: "destructive"
       });
-    } catch (error) {
-       // Should never happen with our safety nets
-      console.error("Failed to complete order", error);
-      setCompleted(true); // Force success for demo
-    } finally {
-      setProcessing(false);
     }
   };
 
@@ -128,7 +293,7 @@ function CheckoutContent() {
     );
   }
 
-  if (error) {
+  if (pageError) {
     return (
       <div className="flex min-h-screen items-center justify-center bg-gray-50 px-4">
         <div className="text-center max-w-md space-y-4 bg-white p-8 rounded-lg shadow-sm">
@@ -136,7 +301,7 @@ function CheckoutContent() {
             <AlertCircle className="h-6 w-6 text-red-600" />
           </div>
           <h2 className="text-lg font-bold text-gray-900">Unable to load checkout</h2>
-          <p className="text-sm text-gray-500">{error}</p>
+          <p className="text-sm text-gray-500">{pageError}</p>
           <Button onClick={() => window.location.reload()} className="w-full bg-[#9c2a8c] hover:bg-[#852277]">
             Try Again
           </Button>
@@ -219,11 +384,47 @@ function CheckoutContent() {
             <Input 
               placeholder="Discount code or gift card" 
               className="bg-white border-gray-300 focus-visible:ring-[#9c2a8c]"
+              value={discountCode}
+              onChange={(e) => setDiscountCode(e.target.value)}
+              disabled={promoLoading}
+              onKeyDown={(e) => {
+                if (e.key === "Enter") {
+                  e.preventDefault();
+                  handleApplyDiscount();
+                }
+              }}
             />
-            <Button variant="outline" className="border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-600">
-              Apply
+            <Button 
+              variant="outline" 
+              className="border-gray-300 bg-gray-100 hover:bg-gray-200 text-gray-600"
+              onClick={handleApplyDiscount}
+              disabled={promoLoading || !discountCode.trim()}
+            >
+              {promoLoading ? <Loader2 className="h-4 w-4 animate-spin" /> : "Apply"}
             </Button>
           </div>
+
+          {/* Applied Promotions */}
+          {cart.promotions && cart.promotions.length > 0 && (
+            <div className="mt-4 space-y-2">
+              {cart.promotions.map((promo: any) => (
+                <div key={promo.id} className="flex items-center justify-between bg-purple-50 p-2 rounded text-sm text-[#9c2a8c]">
+                  <div className="flex items-center gap-2">
+                    <Tag className="h-4 w-4" />
+                    <span>{promo.code}</span>
+                    <span className="text-xs bg-white px-1 rounded border border-purple-200">Applied</span>
+                  </div>
+                  <button 
+                    onClick={() => handleRemoveDiscount(promo.code)}
+                    className="text-gray-500 hover:text-red-500"
+                    disabled={promoLoading}
+                  >
+                    <X className="h-4 w-4" />
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
 
           <Separator className="bg-gray-200" />
 
@@ -233,6 +434,12 @@ function CheckoutContent() {
               <span>Subtotal</span>
               <span className="font-medium text-gray-900">${(cart.subtotal / 100).toFixed(2)}</span>
             </div>
+            {cart.discount_total > 0 && (
+              <div className="flex justify-between text-[#9c2a8c]">
+                <span>Discount</span>
+                <span className="font-medium">-${(cart.discount_total / 100).toFixed(2)}</span>
+              </div>
+            )}
             <div className="flex justify-between">
               <span>Shipping</span>
               <span className="text-xs text-gray-500">Calculated at next step</span>
@@ -461,6 +668,22 @@ function CheckoutContent() {
                 </div>
               </RadioGroup>
             </section>
+
+            {paymentError && (
+              <div className="rounded-md bg-red-50 p-4 border border-red-200 animate-in fade-in slide-in-from-bottom-2">
+                <div className="flex">
+                  <div className="flex-shrink-0">
+                    <AlertCircle className="h-5 w-5 text-red-400" aria-hidden="true" />
+                  </div>
+                  <div className="ml-3">
+                    <h3 className="text-sm font-medium text-red-800">Payment Error</h3>
+                    <div className="mt-1 text-sm text-red-700">
+                      <p>{paymentError}</p>
+                    </div>
+                  </div>
+                </div>
+              </div>
+            )}
 
             <Button 
               type="submit" 
