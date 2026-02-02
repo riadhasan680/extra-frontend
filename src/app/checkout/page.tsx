@@ -141,13 +141,14 @@ function CheckoutContent() {
   // Auto-apply WELCOME30 for new users
   useEffect(() => {
     const isReturning = localStorage.getItem("is_returning_customer");
-    if (!isReturning && cart && cart.promotions?.length === 0 && !discountCode) {
+    if (!isReturning && cart && cart.promotions?.length === 0 && !discountCode && cartId) {
        // Try to apply WELCOME30
        setDiscountCode("WELCOME30");
        // We don't auto-submit here to avoid infinite loops or UI flickering, 
        // but we could pre-fill it or show a toast.
        // Better: Just apply it if cart is loaded.
        const applyNewUserPromo = async () => {
+         if (!cartId) return;
          try {
            setPromoLoading(true);
            const updatedCart = await storeService.addPromotion(cartId, "WELCOME30");
