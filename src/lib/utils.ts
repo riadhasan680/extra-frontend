@@ -18,10 +18,18 @@ export function formatDate(dateString: string | number | Date | undefined): stri
   }
 }
 
-export function formatCurrency(amount: number | undefined): string {
+export function formatCurrency(amount: number | undefined, currency: string = "USD"): string {
   if (amount === undefined || amount === null) return "$0.00";
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency: "USD",
-  }).format(amount);
+  try {
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: currency,
+    }).format(amount);
+  } catch (error) {
+    // Fallback if currency code is invalid
+    return new Intl.NumberFormat("en-US", {
+      style: "currency",
+      currency: "USD",
+    }).format(amount);
+  }
 }

@@ -31,6 +31,15 @@ function CheckoutContent() {
 
   // Form states
   const [email, setEmail] = useState("");
+  const [firstName, setFirstName] = useState("");
+  const [lastName, setLastName] = useState("");
+  const [address1, setAddress1] = useState("");
+  const [city, setCity] = useState("");
+  const [postalCode, setPostalCode] = useState("");
+  const [phone, setPhone] = useState("");
+  const [countryCode, setCountryCode] = useState("us");
+  const [province, setProvince] = useState("");
+  
   const [deliveryMethod, setDeliveryMethod] = useState("ship");
   const [paymentMethod, setPaymentMethod] = useState("credit_card");
   const [billingSameAsShipping, setBillingSameAsShipping] = useState(true);
@@ -60,7 +69,9 @@ function CheckoutContent() {
                  if (order && order.type === "order") {
                      // Success!
                      localStorage.removeItem("dodo_pending_cart_id");
-                     setCompleted(true);
+                     // Mark user as returning customer
+      localStorage.setItem("is_returning_customer", "true");
+      setCompleted(true);
                  } else {
                      console.warn("Cart completion returned non-order (likely still cart due to payment pending):", order);
                      // Check if payment status is captured/authorized in the returned cart
@@ -127,6 +138,35 @@ function CheckoutContent() {
     initCheckout();
   }, [cartId]);
 
+  // Auto-apply WELCOME30 for new users
+  useEffect(() => {
+    const isReturning = localStorage.getItem("is_returning_customer");
+    if (!isReturning && cart && cart.promotions?.length === 0 && !discountCode) {
+       // Try to apply WELCOME30
+       setDiscountCode("WELCOME30");
+       // We don't auto-submit here to avoid infinite loops or UI flickering, 
+       // but we could pre-fill it or show a toast.
+       // Better: Just apply it if cart is loaded.
+       const applyNewUserPromo = async () => {
+         try {
+           setPromoLoading(true);
+           const updatedCart = await storeService.addPromotion(cartId, "WELCOME30");
+           setCart(updatedCart);
+           toast({
+             title: "Welcome Gift!",
+             description: "30% discount applied for your first order.",
+           });
+         } catch (e) {
+           // Ignore error if code doesn't exist
+           console.log("Auto-apply WELCOME30 failed (probably doesn't exist in backend)");
+         } finally {
+           setPromoLoading(false);
+         }
+       };
+       applyNewUserPromo();
+    }
+  }, [cartId, cart?.id]); // Run once when cart is loaded
+
   const handleApplyDiscount = async () => {
     if (!discountCode.trim() || !cartId) return;
     
@@ -182,13 +222,30 @@ function CheckoutContent() {
       setPaymentError(null);
       
       if (cartId) {
-          // 0. Update Cart with Email (Required for Order Creation)
-          if (email) {
-             try {
-                await storeService.updateCart(cartId, { email });
-             } catch (e) {
-                console.warn("Failed to update cart email, proceeding anyway...", e);
-             }
+          // 0. Update Cart with Email and Address (Required for Order Creation)
+          const addressData = {
+              first_name: firstName,
+              last_name: lastName,
+              address_1: address1,
+              city: city,
+              country_code: countryCode,
+              postal_code: postalCode,
+              phone: phone,
+              province: province,
+          };
+
+          try {
+              // Send address data to Medusa
+              // We use billing_address same as shipping for now as per UI logic
+              await storeService.updateCart(cartId, { 
+                  email,
+                  shipping_address: addressData,
+                  billing_address: billingSameAsShipping ? addressData : addressData // TODO: Add separate billing form
+              });
+          } catch (e) {
+              console.warn("Failed to update cart address/email", e);
+              // We continue because maybe it was already set? 
+              // But likely it will fail later if address is missing.
           }
 
           // Call Dodo Payment API (Medusa v2 Flow)
@@ -370,7 +427,7 @@ function CheckoutContent() {
                     )}
                   </div>
                   <span className="font-medium text-gray-900">
-                    ${((item.unit_price * item.quantity) / 100).toFixed(2)}
+                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: cart.currency_code || 'USD' }).format((item.unit_price * item.quantity) / 100)}
                   </span>
                 </div>
               );
@@ -432,12 +489,16 @@ function CheckoutContent() {
           <div className="space-y-2 text-sm text-gray-600">
             <div className="flex justify-between">
               <span>Subtotal</span>
-              <span className="font-medium text-gray-900">${(cart.subtotal / 100).toFixed(2)}</span>
+              <span className="font-medium text-gray-900">
+                {new Intl.NumberFormat('en-US', { style: 'currency', currency: cart.currency_code || 'USD' }).format(cart.subtotal / 100)}
+              </span>
             </div>
             {cart.discount_total > 0 && (
               <div className="flex justify-between text-[#9c2a8c]">
                 <span>Discount</span>
-                <span className="font-medium">-${(cart.discount_total / 100).toFixed(2)}</span>
+                <span className="font-medium">
+                  -{new Intl.NumberFormat('en-US', { style: 'currency', currency: cart.currency_code || 'USD' }).format(cart.discount_total / 100)}
+                </span>
               </div>
             )}
             <div className="flex justify-between">
@@ -447,8 +508,10 @@ function CheckoutContent() {
             <div className="flex justify-between items-center pt-4">
               <span className="text-lg font-medium text-gray-900">Total</span>
               <div className="flex items-baseline gap-2">
-                <span className="text-xs text-gray-500">USD</span>
-                <span className="text-2xl font-bold text-gray-900">${(cart.total / 100).toFixed(2)}</span>
+                <span className="text-xs text-gray-500">{cart.currency_code?.toUpperCase() || 'USD'}</span>
+                <span className="text-2xl font-bold text-gray-900">
+                   {new Intl.NumberFormat('en-US', { style: 'currency', currency: cart.currency_code || 'USD' }).format(cart.total / 100)}
+                </span>
               </div>
             </div>
           </div>
@@ -537,7 +600,7 @@ function CheckoutContent() {
             {/* Shipping Address */}
             <section className="space-y-3">
               <h2 className="text-lg font-medium text-gray-900">Shipping address</h2>
-              <Select defaultValue="us">
+              <Select value={countryCode} onValueChange={setCountryCode}>
                 <SelectTrigger className="w-full bg-white border-gray-300 h-12">
                   <SelectValue placeholder="Country/Region" />
                 </SelectTrigger>
@@ -545,18 +608,43 @@ function CheckoutContent() {
                   <SelectItem value="us">United States</SelectItem>
                   <SelectItem value="ca">Canada</SelectItem>
                   <SelectItem value="uk">United Kingdom</SelectItem>
+                  <SelectItem value="bd">Bangladesh</SelectItem>
                 </SelectContent>
               </Select>
 
               <div className="grid grid-cols-2 gap-3">
-                <Input placeholder="First name" className="bg-white border-gray-300 h-12" required />
-                <Input placeholder="Last name" className="bg-white border-gray-300 h-12" required />
+                <Input 
+                  placeholder="First name" 
+                  className="bg-white border-gray-300 h-12" 
+                  required 
+                  value={firstName}
+                  onChange={(e) => setFirstName(e.target.value)}
+                />
+                <Input 
+                  placeholder="Last name" 
+                  className="bg-white border-gray-300 h-12" 
+                  required 
+                  value={lastName}
+                  onChange={(e) => setLastName(e.target.value)}
+                />
               </div>
-              <Input placeholder="Address" className="bg-white border-gray-300 h-12" required />
+              <Input 
+                placeholder="Address" 
+                className="bg-white border-gray-300 h-12" 
+                required 
+                value={address1}
+                onChange={(e) => setAddress1(e.target.value)}
+              />
               <Input placeholder="Apartment, suite, etc. (optional)" className="bg-white border-gray-300 h-12" />
               <div className="grid grid-cols-3 gap-3">
-                <Input placeholder="City" className="bg-white border-gray-300 h-12" required />
-                <Select>
+                <Input 
+                  placeholder="City" 
+                  className="bg-white border-gray-300 h-12" 
+                  required 
+                  value={city}
+                  onChange={(e) => setCity(e.target.value)}
+                />
+                <Select value={province} onValueChange={setProvince}>
                   <SelectTrigger className="bg-white border-gray-300 h-12">
                     <SelectValue placeholder="State" />
                   </SelectTrigger>
@@ -564,11 +652,24 @@ function CheckoutContent() {
                     <SelectItem value="ca">California</SelectItem>
                     <SelectItem value="ny">New York</SelectItem>
                     <SelectItem value="tx">Texas</SelectItem>
+                    <SelectItem value="dhaka">Dhaka</SelectItem>
                   </SelectContent>
                 </Select>
-                <Input placeholder="ZIP code" className="bg-white border-gray-300 h-12" required />
+                <Input 
+                  placeholder="ZIP code" 
+                  className="bg-white border-gray-300 h-12" 
+                  required 
+                  value={postalCode}
+                  onChange={(e) => setPostalCode(e.target.value)}
+                />
               </div>
-              <Input placeholder="Phone" type="tel" className="bg-white border-gray-300 h-12" />
+              <Input 
+                placeholder="Phone" 
+                type="tel" 
+                className="bg-white border-gray-300 h-12" 
+                value={phone}
+                onChange={(e) => setPhone(e.target.value)}
+              />
             </section>
 
             {/* Payment */}

@@ -177,6 +177,25 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
     );
   }
 
+  // Helper to get display price (prioritize USD)
+  const getDisplayPrice = (variant: ProductVariant | null) => {
+    if (!variant) return { amount: 0, currency: "USD" };
+    
+    // 1. Try to find USD price
+    const usdPrice = variant.prices?.find(p => p.currency_code.toLowerCase() === "usd");
+    if (usdPrice) return { amount: usdPrice.amount, currency: "USD" };
+
+    // 2. Fallback to first price in prices array
+    if (variant.prices && variant.prices.length > 0) {
+      return { amount: variant.prices[0].amount, currency: variant.prices[0].currency_code.toUpperCase() };
+    }
+
+    // 3. Fallback to legacy price field
+    return { amount: variant.price || 0, currency: "USD" };
+  };
+
+  const { amount: priceAmount, currency: priceCurrency } = getDisplayPrice(selectedVariant);
+
   return (
     <section className="bg-white py-20 transition-colors duration-300">
       <div className="container mx-auto max-w-7xl px-6">
@@ -224,12 +243,12 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
                   {/* Original Price (Strikethrough) - Compare At Price */}
                   {(selectedVariant.metadata?.compare_at_price || 0) > 0 && (
                     <span className="text-lg font-bold text-gray-400 line-through decoration-gray-400">
-                      {formatCurrency(((selectedVariant.metadata?.compare_at_price || 0) / 100))}
+                      {formatCurrency(((selectedVariant.metadata?.compare_at_price || 0) / 100), priceCurrency)}
                     </span>
                   )}
                   {/* Current Price */}
                   <span className="text-[24px] font-bold text-[#b02484]">
-                    {formatCurrency((selectedVariant.prices?.[0]?.amount || selectedVariant.price || 0) / 100)}
+                    {formatCurrency(priceAmount / 100, priceCurrency)}
                   </span>
                   {/* Discount Text */}
                   {product.metadata?.discount_text && (
