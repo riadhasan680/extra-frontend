@@ -26,18 +26,19 @@ const nextConfig: NextConfig = {
     ],
   },
   async rewrites() {
+    const backendUrl = process.env.MEDUSA_BACKEND_URL || "http://localhost:9000";
     return [
       {
         source: "/store/:path*",
-        destination: "http://localhost:9000/store/:path*",
+        destination: `${backendUrl}/store/:path*`,
       },
       {
         source: "/admin/:path*",
-        destination: "http://localhost:9000/admin/:path*",
+        destination: `${backendUrl}/admin/:path*`,
       },
       {
         source: "/auth/:path*",
-        destination: "http://localhost:9000/auth/:path*",
+        destination: `${backendUrl}/auth/:path*`,
       },
     ];
   },
