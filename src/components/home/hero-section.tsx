@@ -17,9 +17,9 @@ export function HeroSection() {
         <div className="animate-spin-slow absolute top-20 right-1/4 h-32 w-32 rotate-45 border-2 border-green-400/20 will-change-transform"></div>
         <div className="animate-float-slow absolute bottom-40 left-1/3 h-24 w-24 rounded-lg border-2 border-green-500/20 will-change-transform"></div>
 
-        {/* Subtle Grid Lines - Increased opacity and fixed ID */}
+        {/* Subtle Grid Lines - Fixed Opacity FOUC */}
         <svg
-          className="absolute inset-0 h-full w-full opacity-[0.1]"
+          className="absolute inset-0 h-full w-full"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
@@ -32,7 +32,7 @@ export function HeroSection() {
               <path
                 d="M 40 0 L 0 0 0 40"
                 fill="none"
-                stroke="#22c55e"
+                stroke="rgba(34, 197, 94, 0.15)"
                 strokeWidth="1"
               />
             </pattern>
