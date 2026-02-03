@@ -10,11 +10,12 @@ export function PublicHeader() {
             href="/"
             className="text-primary flex items-center gap-2 text-2xl font-bold tracking-tight"
           >
-            ExtraLife<span className="text-gray-900 dark:text-white">Marketing</span>
+            ExtraLife
+            <span className="text-gray-900 dark:text-white">Marketing</span>
           </Link>
         </div>
 
-        <nav className="hidden items-center gap-8 text-sm font-medium text-gray-600 dark:text-gray-300 md:flex">
+        <nav className="hidden items-center gap-8 text-sm font-medium text-gray-600 md:flex dark:text-gray-300">
           <Link
             href="#features"
             className="hover:text-primary transition-colors dark:hover:text-white"
@@ -39,13 +40,13 @@ export function PublicHeader() {
           <Link href="/login">
             <Button
               variant="ghost"
-              className="cursor-pointer hover:text-primary text-gray-600 hover:bg-purple-50 dark:text-gray-300 dark:hover:bg-gray-800"
+              className="hover:text-primary cursor-pointer text-gray-600 hover:bg-green-50 dark:text-gray-300 dark:hover:bg-gray-800"
             >
               Sign In
             </Button>
           </Link>
           <Link href="/register">
-            <Button className="cursor-pointer bg-primary hover:bg-primary/90 shadow-primary/20 rounded-lg px-6 font-semibold text-white shadow-md">
+            <Button className="bg-primary hover:bg-primary/90 shadow-primary/20 cursor-pointer rounded-lg px-6 font-semibold text-white shadow-md">
               Get Started
             </Button>
           </Link>

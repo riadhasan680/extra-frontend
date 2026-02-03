@@ -1,8 +1,8 @@
 export function ExamplesSection() {
   return (
-    <section className="py-20" style={{ backgroundColor: "#dad8f9" }}>
+    <section className="bg-white py-20">
       <div className="container mx-auto max-w-6xl px-6">
-        <h2 className="mb-6 text-center text-4xl font-bold text-gray-900">
+        <h2 className="mb-6 text-center text-4xl font-bold text-gray-900 md:text-5xl">
           Here are a few examples of our current partnered websites
         </h2>
         <p className="mx-auto mb-12 max-w-3xl text-center text-lg text-gray-600">
@@ -30,23 +30,23 @@ export function ExamplesSection() {
           ].map((site, index) => (
             <div
               key={index}
-              className="rounded-xl border border-purple-100 bg-white p-6 shadow-lg transition-shadow hover:shadow-xl"
+              className="group rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-green-500 hover:shadow-xl"
             >
-              <div className="mb-4 flex h-12 w-12 items-center justify-center rounded-lg bg-gradient-to-br from-purple-500 to-pink-500 text-xl font-bold text-white">
+              <div className="mb-4 flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-green-500 to-green-600 text-2xl font-bold text-white shadow-lg transition-transform group-hover:scale-110">
                 {site.name.charAt(0)}
               </div>
               <h3 className="mb-2 text-xl font-bold text-gray-900">
                 {site.name}
               </h3>
-              <p className="mb-3 font-medium text-purple-600">{site.url}</p>
+              <p className="mb-3 font-medium text-green-600">{site.url}</p>
               <p className="text-sm text-gray-600">{site.description}</p>
             </div>
           ))}
         </div>
 
         {/* CTA Section */}
-        <div className="text-center">
-          <h3 className="mb-8 text-3xl font-bold text-gray-900 md:text-4xl">
+        <div className="rounded-3xl bg-gradient-to-br from-green-50 to-green-100/50 p-12 text-center">
+          <h3 className="mb-6 text-3xl font-bold text-gray-900 md:text-4xl">
             So What Are You Waiting For❔
           </h3>
           <p className="mx-auto mb-8 max-w-2xl text-xl text-gray-600">
@@ -56,13 +56,13 @@ export function ExamplesSection() {
           <div className="flex flex-col justify-center gap-4 sm:flex-row">
             <a
               href="#products"
-              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-purple-600 to-purple-700 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:from-purple-700 hover:to-purple-800 hover:shadow-xl"
+              className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-green-600 to-green-700 px-8 py-4 text-lg font-bold text-white shadow-lg transition-all hover:from-green-700 hover:to-green-800 hover:shadow-xl"
             >
               View Our Packages
             </a>
             <a
               href="#contact"
-              className="inline-flex items-center justify-center rounded-xl border-2 border-purple-600 bg-white px-8 py-4 text-lg font-bold text-purple-700 shadow-lg transition-all hover:bg-purple-50"
+              className="inline-flex items-center justify-center rounded-xl border-2 border-green-600 bg-white px-8 py-4 text-lg font-bold text-green-700 shadow-lg transition-all hover:bg-green-50"
             >
               Contact Us
             </a>

@@ -25,64 +25,56 @@ export function ReasonsSection() {
   ];
 
   return (
-    <section className="py-20 bg-[#dad8f9]">
-      <div className="container mx-auto max-w-6xl px-6">
-        <div className="grid items-center gap-16 md:grid-cols-2">
-          {/* Left - Big Twitch Logo */}
-          <div className="order-2 flex justify-center md:order-1">
-            <div className="relative">
-              {/* Outer glow rings - multiple layers */}
-              <div className="absolute inset-0 scale-110 rounded-full bg-gradient-to-br from-purple-400 to-pink-400 opacity-30 blur-3xl"></div>
-              <div className="absolute inset-0 scale-105 rounded-full bg-gradient-to-br from-purple-300 to-pink-300 opacity-40 blur-2xl"></div>
-
-              {/* Main circle with enhanced styling */}
-              <div className="relative flex h-80 w-80 items-center justify-center rounded-full border-[14px] border-purple-400/80 bg-gradient-to-br from-purple-500 via-purple-600 to-purple-700 shadow-2xl">
-                {/* Inner dark circle */}
-                <div className="absolute inset-8 rounded-full bg-gray-900"></div>
-
-                {/* Twitch logo */}
-                <svg
-                  className="relative z-10 h-48 w-48"
-                  viewBox="0 0 256 268"
-                  fill="#a78bfa"
-                >
-                  <path d="M17.458 0L0 46.556v186.201h63.983v34.934h34.931l34.898-34.934h52.36L256 162.954V0H17.458zm23.259 23.263H232.73v128.029l-40.739 40.741H128L93.113 226.92v-34.886H40.717V23.263zm64.008 116.405H128V69.844h-23.275v69.824zm63.997 0h23.27V69.844h-23.27v69.824z" />
-                </svg>
-              </div>
-            </div>
+    <section className="bg-white py-20">
+      <div className="container mx-auto max-w-7xl px-6">
+        {/* Header */}
+        <div className="mb-16 text-center">
+          <div className="mb-6 inline-flex items-center justify-center">
+            <svg className="h-20 w-20" viewBox="0 0 256 268" fill="#22c55e">
+              <path d="M17.458 0L0 46.556v186.201h63.983v34.934h34.931l34.898-34.934h52.36L256 162.954V0H17.458zm23.259 23.263H232.73v128.029l-40.739 40.741H128L93.113 226.92v-34.886H40.717V23.263zm64.008 116.405H128V69.844h-23.275v69.824zm63.997 0h23.27V69.844h-23.27v69.824z" />
+            </svg>
           </div>
-
-          {/* Right - Reasons List */}
-          <div className="order-1 space-y-6 md:order-2">
-            <h2 className="mb-8 text-center text-3xl flex justify-center items-center font-normal text-gray-900 md:text-left md:text-4xl">
-              Reasons that you absolutely need Xtra Marketing:
-            </h2>
-
-            {reasons.map((reason, index) => (
-              <div
-                key={index}
-                className="flex items-start gap-4 rounded-xl bg-white/40 p-4 backdrop-blur-sm"
-              >
-                <div className="mt-1 shrink-0">
-                  <CheckCircle2 className="h-6 w-6 text-green-500" />
-                </div>
-                <div>
-                  <h3 className="mb-2 font-bold text-gray-900">
-                    {reason.title}
-                  </h3>
-                  <p className="text-sm leading-relaxed text-gray-700">
-                    {reason.description}
-                  </p>
-                </div>
-              </div>
-            ))}
-          </div>
+          <h2 className="text-4xl font-bold text-gray-900 md:text-5xl">
+            Why Choose Xtra Marketing?
+          </h2>
+          <p className="mt-4 text-lg text-gray-600">
+            The smart choice for authentic Twitch growth
+          </p>
         </div>
 
-        {/* GET 10% OFF Badge - Mobile */}
-        <div className="mt-12 flex justify-center md:hidden">
-          <div className="rotate-3 transform rounded-full bg-gradient-to-br from-pink-500 to-purple-600 px-8 py-4 text-lg font-bold text-white shadow-2xl">
-            GET 10% OFF
+        {/* Reasons Grid */}
+        <div className="grid gap-6 md:grid-cols-2">
+          {reasons.map((reason, index) => (
+            <div
+              key={index}
+              className="group rounded-2xl border-2 border-gray-100 bg-white p-6 shadow-sm transition-all duration-300 hover:border-green-500 hover:shadow-lg"
+            >
+              <div className="mb-4 flex items-start gap-4">
+                <div className="shrink-0">
+                  <CheckCircle2 className="h-8 w-8 text-green-500" />
+                </div>
+                <h3 className="text-xl font-bold text-gray-900">
+                  {reason.title}
+                </h3>
+              </div>
+              <p className="leading-relaxed text-gray-600">
+                {reason.description}
+              </p>
+            </div>
+          ))}
+        </div>
+
+        {/* Bottom CTA */}
+        <div className="mt-12 rounded-2xl bg-gradient-to-r from-green-50 to-green-100 p-8 text-center">
+          <div className="mx-auto max-w-3xl">
+            <p className="text-lg font-semibold text-gray-900">
+              Ready to accelerate your Twitch growth with real, compliant
+              promotion?
+            </p>
+            <div className="mt-6 inline-flex items-center gap-2 rounded-full bg-green-500 px-6 py-3 text-sm font-bold text-white shadow-lg">
+              <span>GET 10% OFF</span>
+              <span className="text-xl">→</span>
+            </div>
           </div>
         </div>
       </div>

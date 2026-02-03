@@ -40,12 +40,13 @@ export default function ProductDetailsPage() {
 
       // Step 1: Create Cart
       const cart = await storeService.createCart();
-      
+
       // Step 2: Add Variant to Cart (Default to first variant or product ID)
-      const variantId = product.variants && product.variants.length > 0 
-        ? product.variants[0].id 
-        : product.id;
-        
+      const variantId =
+        product.variants && product.variants.length > 0
+          ? product.variants[0].id
+          : product.id;
+
       await storeService.addToCart(cart.id, variantId, 1);
 
       // Step 3: Apply Affiliate (if exists in localStorage)
@@ -63,7 +64,6 @@ export default function ProductDetailsPage() {
 
       // Step 4: Redirect to Checkout
       router.push(`/checkout?cart_id=${cart.id}`);
-
     } catch (error) {
       console.error("Buy It Now failed", error);
       toast({
@@ -79,7 +79,7 @@ export default function ProductDetailsPage() {
   if (loading) {
     return (
       <div className="flex h-[50vh] items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
       </div>
     );
   }
@@ -105,37 +105,39 @@ export default function ProductDetailsPage() {
 
       <div className="grid gap-8 md:grid-cols-2">
         {/* Product Image */}
-        <div className="overflow-hidden rounded-xl border bg-gray-50 dark:bg-gray-900">
-           {product.imageUrl ? (
-             <img 
-               src={product.imageUrl} 
-               alt={product.title}
-               className="h-full w-full object-cover"
-             />
-           ) : (
-             <div className="flex h-96 items-center justify-center text-gray-400">
-               No Image Available
-             </div>
-           )}
+        <div className="overflow-hidden rounded-xl border">
+          {product.imageUrl ? (
+            <img
+              src={product.imageUrl}
+              alt={product.title}
+              className="h-[500px] w-full object-cover"
+            />
+          ) : (
+            <div className="flex h-96 items-center justify-center text-gray-400">
+              No Image Available
+            </div>
+          )}
         </div>
 
         {/* Product Info */}
         <div className="flex flex-col gap-6">
           <div>
             <h1 className="text-3xl font-bold">{product.title}</h1>
-            <p className="mt-4 text-3xl font-bold text-purple-600">
-              {product.price ? `$${(Number(product.price) / 100).toFixed(2)}` : "Price on Request"}
+            <p className="mt-4 text-3xl font-bold text-green-600">
+              {product.price
+                ? `$${(Number(product.price) / 100).toFixed(2)}`
+                : "Price on Request"}
             </p>
           </div>
-          
+
           <div className="prose dark:prose-invert">
             <p>{product.description}</p>
           </div>
 
           <div className="mt-8">
-            <Button 
-              size="lg" 
-              className="w-full bg-purple-600 hover:bg-purple-700"
+            <Button
+              size="lg"
+              className="w-full bg-green-600 hover:bg-green-700"
               onClick={handleBuyItNow}
               disabled={isBuying}
             >

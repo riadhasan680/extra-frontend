@@ -1,64 +1,94 @@
+import { Target, TrendingUp, Shield, Users } from "lucide-react";
+
 export function GuaranteedResultsSection() {
+  const features = [
+    {
+      icon: Target,
+      title: "Targeted Embedding",
+      description:
+        "We embed your live stream into advertisement sections of popular gaming websites",
+    },
+    {
+      icon: Users,
+      title: "Real Live Viewers",
+      description: "Bring actual human viewers into your Twitch streams",
+    },
+    {
+      icon: TrendingUp,
+      title: "Higher Rankings",
+      description:
+        "Increase your ranking on the Twitch category you're streaming under",
+    },
+    {
+      icon: Shield,
+      title: "Algorithm Boost",
+      description:
+        "Increased chance of triggering Twitch algorithmic views like 'recommended channels'",
+    },
+  ];
+
   return (
     <section className="bg-white py-20">
-      <div className="container mx-auto max-w-6xl px-6">
-        <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
-          Guaranteed Results!
-        </h2>
+      <div className="container mx-auto max-w-7xl px-6">
+        <div className="mb-16 text-center">
+          <h2 className="mb-4 text-4xl font-bold text-gray-900 md:text-5xl">
+            Guaranteed Results!
+          </h2>
+          <p className="text-lg text-gray-600">
+            Real advertising that delivers measurable growth
+          </p>
+        </div>
 
-        <div className="mb-16 grid items-center gap-12 md:grid-cols-2">
-          {/* Left - Content */}
-          <div className="space-y-6">
+        {/* Features Grid */}
+        <div className="mb-16 grid gap-6 md:grid-cols-2 lg:grid-cols-4">
+          {features.map((feature, index) => (
+            <div
+              key={index}
+              className="group flex flex-col items-center rounded-2xl border-2 border-gray-100 bg-white p-6 text-center transition-all duration-300 hover:border-green-500 hover:shadow-lg"
+            >
+              <div className="mb-4 flex h-16 w-16 items-center justify-center rounded-full bg-green-100 text-green-600 transition-colors group-hover:bg-green-500 group-hover:text-white">
+                <feature.icon className="h-8 w-8" />
+              </div>
+              <h3 className="mb-2 text-lg font-bold text-gray-900">
+                {feature.title}
+              </h3>
+              <p className="text-sm text-gray-600">{feature.description}</p>
+            </div>
+          ))}
+        </div>
+
+        {/* Main Content */}
+        <div className="rounded-3xl bg-gradient-to-br from-green-50 to-green-100/50 p-8 md:p-12">
+          <div className="mx-auto max-w-4xl space-y-6 text-center">
             <p className="text-lg leading-relaxed text-gray-700">
-              We <strong>Embed your live stream</strong> into the advertisement
-              sections of popular gaming websites to bring REAL live viewers
-              into your Twitch streams and increase your ranking on the Twitch
-              category you are streaming under.
+              We{" "}
+              <strong className="text-green-700">embed your live stream</strong>{" "}
+              into the advertisement sections of popular gaming websites to
+              bring REAL live viewers into your Twitch streams and increase your
+              ranking on the Twitch category you are streaming under.
             </p>
 
             <p className="leading-relaxed text-gray-700">
               This service will also allow increased chance of triggering Twitch
-              algorithmic views such as <strong>"recommended channels"</strong>{" "}
-              or <strong>"live viewers we think you'll like sections"</strong>
+              algorithmic views such as{" "}
+              <strong className="text-green-700">"recommended channels"</strong>{" "}
+              or{" "}
+              <strong className="text-green-700">
+                "live viewers we think you'll like sections"
+              </strong>
             </p>
 
-            <p className="leading-relaxed text-gray-700">
-              It's time to start working towards your Affiliate or Partner goals
-              and grow your Twitch channel and use real advertising to get more
-              eyes on your stream
-            </p>
-          </div>
-
-          {/* Right - Twitch Icons Grid */}
-          <div className="relative">
-            <div className="grid grid-cols-2 gap-6">
-              {[1, 2, 3, 4].map((i) => (
-                <div
-                  key={i}
-                  className="flex aspect-square transform items-center justify-center rounded-2xl bg-gradient-to-br from-purple-600 to-purple-800 p-6 shadow-xl transition-transform duration-300 hover:scale-105"
-                >
-                  <svg
-                    className="h-full w-full"
-                    viewBox="0 0 256 268"
-                    fill="white"
-                  >
-                    <path d="M17.458 0L0 46.556v186.201h63.983v34.934h34.931l34.898-34.934h52.36L256 162.954V0H17.458zm23.259 23.263H232.73v128.029l-40.739 40.741H128L93.113 226.92v-34.886H40.717V23.263zm64.008 116.405H128V69.844h-23.275v69.824zm63.997 0h23.27V69.844h-23.27v69.824z" />
-                  </svg>
-                </div>
-              ))}
+            <div className="mt-8 rounded-2xl border-2 border-green-500 bg-white p-6 shadow-lg">
+              <p className="text-lg font-bold text-gray-900">
+                It's time to start working towards your Affiliate or Partner
+                goals
+              </p>
+              <p className="mt-2 text-gray-700">
+                Grow your Twitch channel and use real advertising to get more
+                eyes on your stream
+              </p>
             </div>
           </div>
-        </div>
-
-        {/* Bottom Text */}
-        <div className="rounded-2xl border border-gray-200 bg-gray-50 p-8 shadow-sm">
-          <p className="text-center text-lg leading-relaxed text-gray-700">
-            <strong>
-              It's time to start working towards your Affiliate or Partner goals
-            </strong>{" "}
-            and grow your Twitch channel and use real advertising to get more
-            eyes on your stream
-          </p>
         </div>
       </div>
     </section>

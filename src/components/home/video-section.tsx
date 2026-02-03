@@ -1,10 +1,13 @@
 export function VideoSection() {
   return (
-    <section className="bg-white py-20">
+    <section className="bg-gradient-to-b from-green-50/30 to-white py-20">
       <div className="container mx-auto max-w-6xl px-6">
-        <h2 className="mb-12 text-center text-4xl font-bold text-gray-900">
+        <h2 className="mb-4 text-center text-4xl font-bold text-gray-900 md:text-5xl">
           See How It Works
         </h2>
+        <p className="mb-12 text-center text-lg text-gray-600">
+          Watch our detailed walkthrough
+        </p>
 
         <div className="relative overflow-hidden rounded-2xl shadow-2xl">
           {/* Video Container */}
@@ -19,8 +22,8 @@ export function VideoSection() {
             ></iframe>
 
             {/* Overlay with Play Button (optional - shown before video loads) */}
-            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-br from-blue-900/50 to-purple-900/50 opacity-0 transition-opacity hover:opacity-100">
-              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-red-600 shadow-2xl">
+            <div className="pointer-events-none absolute inset-0 flex items-center justify-center bg-gradient-to-br from-green-900/50 to-green-700/50 opacity-0 transition-opacity hover:opacity-100">
+              <div className="flex h-20 w-20 items-center justify-center rounded-full bg-green-600 shadow-2xl">
                 <svg
                   className="ml-1 h-10 w-10 text-white"
                   fill="currentColor"
@@ -35,7 +38,7 @@ export function VideoSection() {
           {/* Video Info Bar */}
           <div className="flex items-center justify-between bg-gray-900 px-6 py-4 text-white">
             <div className="flex items-center gap-3">
-              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-purple-500 to-pink-500">
+              <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600">
                 <span className="text-sm font-bold">XL</span>
               </div>
               <div>
@@ -48,7 +51,7 @@ export function VideoSection() {
               href="https://www.youtube.com"
               target="_blank"
               rel="noopener noreferrer"
-              className="flex items-center gap-2 text-sm transition-colors hover:text-purple-300"
+              className="flex items-center gap-2 text-sm transition-colors hover:text-green-300"
             >
               <span>Watch on</span>
               <svg className="h-5 w-5" viewBox="0 0 24 24" fill="currentColor">

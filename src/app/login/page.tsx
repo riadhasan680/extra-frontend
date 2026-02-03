@@ -43,11 +43,11 @@ export default function LoginPage() {
     } finally {
       // We don't set loading to false immediately if successful because we are redirecting
       // But if we want to be safe:
-      // setIsLoading(false); 
+      // setIsLoading(false);
       // Actually, if we redirect, component unmounts. If we fail, we need to stop loading.
       // Since login() throws on error, this works.
     }
-    
+
     // Safety timeout to stop loading if redirect fails or takes too long
     setTimeout(() => setIsLoading(false), 3000);
   }
@@ -55,30 +55,33 @@ export default function LoginPage() {
   async function handleGoogleLogin() {
     setIsGoogleLoading(true);
     try {
-       // For Google, we might need a specific method in AuthContext or just fake it here
-       // But better to use the same pattern
-       await login({ email: "user@gmail.com", password: "google_mock_password" });
+      // For Google, we might need a specific method in AuthContext or just fake it here
+      // But better to use the same pattern
+      await login({
+        email: "user@gmail.com",
+        password: "google_mock_password",
+      });
     } catch (error) {
-       console.error(error);
+      console.error(error);
     } finally {
-       setTimeout(() => setIsGoogleLoading(false), 3000);
+      setTimeout(() => setIsGoogleLoading(false), 3000);
     }
   }
 
   return (
-    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-purple-50 via-white to-purple-100 p-4">
+    <div className="relative flex min-h-screen flex-col items-center justify-center overflow-hidden bg-gradient-to-br from-green-50 via-white to-green-100 p-4">
       {/* Animated background elements */}
       <div className="absolute inset-0 overflow-hidden">
-        <div className="absolute top-20 -left-4 h-72 w-72 animate-pulse rounded-full bg-purple-300 opacity-20 blur-3xl" />
-        <div className="absolute -right-4 bottom-20 h-96 w-96 animate-pulse rounded-full bg-purple-400 opacity-20 blur-3xl delay-1000" />
-        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-purple-200 opacity-10 blur-3xl delay-500" />
+        <div className="absolute top-20 -left-4 h-72 w-72 animate-pulse rounded-full bg-green-300 opacity-20 blur-3xl" />
+        <div className="absolute -right-4 bottom-20 h-96 w-96 animate-pulse rounded-full bg-green-400 opacity-20 blur-3xl delay-1000" />
+        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-green-200 opacity-10 blur-3xl delay-500" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-md">
         {/* Brand Logo */}
         <Link href="/" className="mb-8 flex justify-center">
-          <div className="rounded-2xl bg-white/80 p-4 shadow-xl backdrop-blur-sm transition-transform hover:scale-105">
+          <div className="rounded-2xl bg-white/80 p-4   backdrop-blur-sm transition-transform hover:scale-105">
             <Image
               src="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
               alt="Xtra Marketing"
@@ -89,9 +92,9 @@ export default function LoginPage() {
           </div>
         </Link>
 
-        <Card className="border-2 border-purple-100 bg-white/80 shadow-2xl backdrop-blur-md">
+        <Card className="border border-green-100 bg-white/80   backdrop-blur-md">
           <CardHeader className="space-y-2 text-center">
-            <CardTitle className="bg-gradient-to-r from-purple-600 to-purple-900 bg-clip-text text-3xl font-bold text-transparent">
+            <CardTitle className="bg-gradient-to-r from-green-600 to-green-900 bg-clip-text text-3xl font-bold text-transparent">
               Welcome Back
             </CardTitle>
             <CardDescription className="text-base text-gray-600">
@@ -103,7 +106,7 @@ export default function LoginPage() {
             <Button
               type="button"
               variant="outline"
-              className="w-full border-2 border-gray-200 bg-white py-6 text-base font-medium transition-all hover:border-purple-300 hover:bg-purple-50 hover:shadow-md"
+              className="w-full border-2 border-gray-200 bg-white py-6 text-base font-medium transition-all hover:border-green-300 hover:bg-green-50 hover:shadow-md"
               onClick={handleGoogleLogin}
               disabled={isGoogleLoading || isLoading}
             >
@@ -114,7 +117,7 @@ export default function LoginPage() {
                 </>
               ) : (
                 <>
-                  <Chrome className="mr-2 h-5 w-5 text-purple-600" />
+                  <Chrome className="mr-2 h-5 w-5 text-green-600" />
                   Continue with Google
                 </>
               )}
@@ -146,7 +149,7 @@ export default function LoginPage() {
                     type="email"
                     placeholder="name@example.com"
                     required
-                    className="border-2 border-purple-100 py-6 pl-11 text-base transition-all focus-visible:border-purple-400 focus-visible:ring-purple-500"
+                    className="border-2 border-green-100 py-6 pl-11 text-base transition-all outline-none focus:ring-0 focus:outline-none"
                   />
                 </div>
               </div>
@@ -157,7 +160,7 @@ export default function LoginPage() {
                   </Label>
                   <Link
                     href="#"
-                    className="text-sm font-medium text-purple-600 transition-colors hover:text-purple-800 hover:underline"
+                    className="text-sm font-medium text-green-600 transition-colors hover:text-green-800 hover:underline"
                   >
                     Forgot password?
                   </Link>
@@ -169,14 +172,14 @@ export default function LoginPage() {
                     name="password"
                     type="password"
                     required
-                    className="border-2 border-purple-100 py-6 pl-11 text-base transition-all focus-visible:border-purple-400 focus-visible:ring-purple-500"
+                    className="border-2 border-green-100 py-6 pl-11 text-base transition-all outline-none focus:ring-0 focus:outline-none"
                   />
                 </div>
               </div>
 
               <Button
                 type="submit"
-                className="w-full bg-gradient-to-r from-purple-600 to-purple-700 py-6 text-base font-semibold shadow-lg shadow-purple-500/30 transition-all hover:from-purple-700 hover:to-purple-800 hover:shadow-xl hover:shadow-purple-500/40"
+                className="w-full bg-gradient-to-r from-green-600 to-green-700 py-6 text-white tracking-wider cursor-pointer font-semibold shadow-lg shadow-green-500/30 transition-all hover:from-green-700 hover:to-green-800 hover:shadow-xl hover:shadow-green-500/40"
                 disabled={isLoading || isGoogleLoading}
               >
                 {isLoading ? (
@@ -195,7 +198,7 @@ export default function LoginPage() {
               Don&apos;t have an account?{" "}
               <Link
                 href="/register"
-                className="font-semibold text-purple-600 transition-colors hover:text-purple-800 hover:underline"
+                className="font-semibold text-green-600 transition-colors hover:text-green-800 hover:underline"
               >
                 Create account
               </Link>
@@ -206,11 +209,11 @@ export default function LoginPage() {
         {/* Additional Info */}
         <p className="mt-6 text-center text-sm text-gray-500">
           By signing in, you agree to our{" "}
-          <Link href="#" className="text-purple-600 hover:underline">
+          <Link href="#" className="text-green-600 hover:underline">
             Terms of Service
           </Link>{" "}
           and{" "}
-          <Link href="#" className="text-purple-600 hover:underline">
+          <Link href="#" className="text-green-600 hover:underline">
             Privacy Policy
           </Link>
         </p>

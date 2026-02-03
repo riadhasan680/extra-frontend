@@ -10,11 +10,17 @@ import { storeService } from "@/services/store.service";
 import { Product, ProductVariant } from "@/types/api";
 import { useRouter } from "next/navigation";
 
-export function CtaProductSection({ initialProduct }: { initialProduct?: Product | null }) {
-  const [product, setProduct] = useState<Product | null>(initialProduct || null);
+export function CtaProductSection({
+  initialProduct,
+}: {
+  initialProduct?: Product | null;
+}) {
+  const [product, setProduct] = useState<Product | null>(
+    initialProduct || null
+  );
   const [loading, setLoading] = useState(!initialProduct);
   const [isBuying, setIsBuying] = useState(false);
-  
+
   const { toast } = useToast();
   const router = useRouter();
 
@@ -26,8 +32,8 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
       try {
         setLoading(true);
         const products = await storeService.getProducts();
-        const foundProduct = products.length > 1 ? products[1] : products[0]; 
-        
+        const foundProduct = products.length > 1 ? products[1] : products[0];
+
         if (foundProduct) {
           setProduct(foundProduct);
         }
@@ -51,9 +57,11 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
       let regionId: string | undefined;
       try {
         const regions = await storeService.getRegions();
-        const usRegion = regions.find((r: any) => r.countries?.some((c: any) => c.iso_2 === 'us'));
+        const usRegion = regions.find((r: any) =>
+          r.countries?.some((c: any) => c.iso_2 === "us")
+        );
         const defaultRegion = regions[0];
-        
+
         if (usRegion) {
           regionId = usRegion.id;
         } else if (defaultRegion) {
@@ -71,19 +79,27 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
 
       let cart;
       try {
-        cart = await storeService.createCart(regionId ? { region_id: regionId } : undefined);
+        cart = await storeService.createCart(
+          regionId ? { region_id: regionId } : undefined
+        );
         await storeService.addToCart(cart.id, variantId, 1);
       } catch (cartError: any) {
-         const errMsg = cartError.response?.data?.message || "";
-         if (errMsg.includes("stock location") || errMsg.includes("Sales Channel")) {
-             console.warn("First attempt failed, retrying without explicit region...", cartError);
-             cart = await storeService.createCart(); // Retry without region
-             await storeService.addToCart(cart.id, variantId, 1);
-         } else {
-             throw cartError;
-         }
+        const errMsg = cartError.response?.data?.message || "";
+        if (
+          errMsg.includes("stock location") ||
+          errMsg.includes("Sales Channel")
+        ) {
+          console.warn(
+            "First attempt failed, retrying without explicit region...",
+            cartError
+          );
+          cart = await storeService.createCart(); // Retry without region
+          await storeService.addToCart(cart.id, variantId, 1);
+        } else {
+          throw cartError;
+        }
       }
-      
+
       // Step 3: Apply Affiliate (if exists in localStorage)
       const affiliateData = localStorage.getItem("affiliate_ref");
       if (affiliateData) {
@@ -99,7 +115,6 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
 
       // Step 4: Redirect to Cart (Step 1 of flow)
       router.push(`/cart?cart_id=${cart.id}`);
-
     } catch (error) {
       console.error("Buy It Now failed", error);
       toast({
@@ -114,8 +129,8 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
 
   return (
     <section className="relative overflow-hidden">
-      {/* Purple Background with Twitch Pattern */}
-      <div className="bg-gradient-to-br from-purple-900 via-purple-800 to-purple-900 py-20">
+      {/* Green Background with Twitch Pattern */}
+      <div className="bg-gradient-to-br from-green-900 via-green-800 to-green-900 py-20">
         {/* Twitch Logo Pattern Background */}
         <div className="pointer-events-none absolute inset-0 opacity-10">
           {/* Fallback pattern if image not available */}
@@ -157,12 +172,16 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
             <div className="relative flex justify-center">
               <div className="group perspective-1000 relative h-72 w-56 -rotate-3 transform transition-transform duration-500 hover:rotate-0">
                 {/* CSS 3D Box Mockup */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center rounded-lg border border-pink-400/30 bg-gradient-to-br from-[#9c2a8c] to-[#6a1b5f] p-1 text-white shadow-2xl overflow-hidden">
-                   <img 
-                     src={product?.images && product.images.length > 0 ? product.images[0].url : "/product-placeholder.svg"} 
-                     alt={product?.title || "Product"}
-                     className="h-full w-full object-cover rounded"
-                   />
+                <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-lg border border-green-400/30 bg-gradient-to-br from-[#22c55e] to-[#16a34a] p-1 text-white shadow-2xl">
+                  <img
+                    src={
+                      product?.images && product.images.length > 0
+                        ? product.images[0].url
+                        : "/product-placeholder.svg"
+                    }
+                    alt={product?.title || "Product"}
+                    className="h-full w-full rounded object-cover"
+                  />
                 </div>
                 {/* Shadow */}
                 <div className="absolute right-2 -bottom-6 left-2 h-4 rounded-[100%] bg-black/30 blur-lg"></div>
@@ -183,7 +202,7 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
                 <span className="text-xl font-bold text-gray-900 line-through">
                   $659.95
                 </span>
-                <span className="text-xl font-bold text-[#b02484]">
+                <span className="text-xl font-bold text-[#22c55e]">
                   $250.00
                 </span>
               </div>
@@ -191,17 +210,17 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
               {/* Day Options */}
               <div>
                 <p className="mb-2 text-sm text-gray-600">Day</p>
-                <div className="inline-block rounded-sm bg-[#9c2a8c] px-8 py-2 font-medium text-white">
+                <div className="inline-block rounded-sm bg-[#22c55e] px-8 py-2 font-medium text-white">
                   1 Month
                 </div>
               </div>
 
               {/* Buy Button */}
               <div>
-                <Button 
+                <Button
                   onClick={handleBuyItNow}
                   disabled={!product || isBuying}
-                  className="cursor-pointer h-12 w-full rounded-[4px] bg-[#9c2a8c] text-lg font-medium text-white shadow-md transition-all hover:bg-[#852277] disabled:opacity-50 disabled:cursor-not-allowed"
+                  className="h-12 w-full cursor-pointer rounded-[4px] bg-[#22c55e] text-lg font-medium text-white shadow-md transition-all hover:bg-[#16a34a] disabled:cursor-not-allowed disabled:opacity-50"
                 >
                   {isBuying ? (
                     <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -213,7 +232,7 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
 
                 <Link
                   href={product ? `/products/${product.id}` : "#details"}
-                  className="mt-4 inline-flex items-center gap-1 text-sm text-gray-500 underline decoration-gray-400 hover:text-purple-700"
+                  className="mt-4 inline-flex items-center gap-1 text-sm text-gray-500 underline decoration-gray-400 hover:text-green-700"
                 >
                   Full details <span className="no-underline">→</span>
                 </Link>
@@ -224,7 +243,7 @@ export function CtaProductSection({ initialProduct }: { initialProduct?: Product
       </div>
 
       {/* Trust Badges Section - Matched to Screenshot */}
-      <div className="bg-[#dad8f9] py-16">
+      <div className="bg-white py-16">
         <div className="container mx-auto max-w-7xl px-6">
           <div className="grid grid-cols-1 gap-8 md:grid-cols-3">
             {/* Badge 1 */}

@@ -11,18 +11,30 @@ import { useRouter } from "next/navigation";
 
 import { formatCurrency } from "@/lib/utils";
 
-export function ProductSection({ initialProduct }: { initialProduct?: Product | null }) {
-  const [product, setProduct] = useState<Product | null>(initialProduct || null);
+export function ProductSection({
+  initialProduct,
+}: {
+  initialProduct?: Product | null;
+}) {
+  const [product, setProduct] = useState<Product | null>(
+    initialProduct || null
+  );
   const [loading, setLoading] = useState(!initialProduct);
-  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(null);
+  const [selectedVariant, setSelectedVariant] = useState<ProductVariant | null>(
+    null
+  );
   const [isBuying, setIsBuying] = useState(false);
-  
+
   const { toast } = useToast();
   const router = useRouter();
 
   // Initialize variant if product is provided initially
   useEffect(() => {
-    if (initialProduct && initialProduct.variants && initialProduct.variants.length > 0) {
+    if (
+      initialProduct &&
+      initialProduct.variants &&
+      initialProduct.variants.length > 0
+    ) {
       setSelectedVariant(initialProduct.variants[0]);
     }
   }, [initialProduct]);
@@ -30,10 +42,11 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
   // Fallback fetch if no initial product provided or if initial product is invalid (zero price)
   useEffect(() => {
     // Check if initial product is valid (has variants and price > 0)
-    const isInitialValid = initialProduct && 
-                          initialProduct.variants && 
-                          initialProduct.variants.length > 0 && 
-                          (initialProduct.variants[0].price > 0);
+    const isInitialValid =
+      initialProduct &&
+      initialProduct.variants &&
+      initialProduct.variants.length > 0 &&
+      initialProduct.variants[0].price > 0;
 
     if (isInitialValid) return;
 
@@ -41,8 +54,8 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
       try {
         setLoading(true);
         const products = await storeService.getProducts();
-        const foundProduct = products[0]; 
-        
+        const foundProduct = products[0];
+
         if (foundProduct) {
           setProduct(foundProduct);
           if (foundProduct.variants && foundProduct.variants.length > 0) {
@@ -80,35 +93,48 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
       try {
         const regions = await storeService.getRegions();
         // Try to find US region or fallback to first region
-        const usRegion = regions.find((r: any) => r.countries?.some((c: any) => c.iso_2 === 'us'));
+        const usRegion = regions.find((r: any) =>
+          r.countries?.some((c: any) => c.iso_2 === "us")
+        );
         const defaultRegion = regions[0];
-        
+
         if (usRegion) {
           regionId = usRegion.id;
         } else if (defaultRegion) {
           regionId = defaultRegion.id;
         }
       } catch (e) {
-        console.warn("Failed to fetch regions, attempting to create cart without explicit region", e);
+        console.warn(
+          "Failed to fetch regions, attempting to create cart without explicit region",
+          e
+        );
       }
 
       let cart;
       try {
-        cart = await storeService.createCart(regionId ? { region_id: regionId } : undefined);
+        cart = await storeService.createCart(
+          regionId ? { region_id: regionId } : undefined
+        );
         await storeService.addToCart(cart.id, selectedVariant.id, 1);
       } catch (cartError: any) {
-         const errMsg = cartError.response?.data?.message || "";
-         // If error is related to stock location/sales channel, retry without explicit region
-         // This handles cases where the API key's default sales channel doesn't match the region context
-         if (errMsg.includes("stock location") || errMsg.includes("Sales Channel")) {
-             console.warn("First attempt failed, retrying without explicit region...", cartError);
-             cart = await storeService.createCart(); // No region_id, let Medusa pick default
-             await storeService.addToCart(cart.id, selectedVariant.id, 1);
-         } else {
-             throw cartError;
-         }
+        const errMsg = cartError.response?.data?.message || "";
+        // If error is related to stock location/sales channel, retry without explicit region
+        // This handles cases where the API key's default sales channel doesn't match the region context
+        if (
+          errMsg.includes("stock location") ||
+          errMsg.includes("Sales Channel")
+        ) {
+          console.warn(
+            "First attempt failed, retrying without explicit region...",
+            cartError
+          );
+          cart = await storeService.createCart(); // No region_id, let Medusa pick default
+          await storeService.addToCart(cart.id, selectedVariant.id, 1);
+        } else {
+          throw cartError;
+        }
       }
-      
+
       // Step 3: Apply Affiliate (if exists in localStorage)
       const affiliateData = localStorage.getItem("affiliate_ref");
       if (affiliateData) {
@@ -126,17 +152,17 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
       // Step 4: Redirect to Cart (Step 1 of flow)
       // We redirect to cart page to allow user to adjust quantity and add Twitch link
       router.push(`/cart?cart_id=${cart.id}`);
-
     } catch (error: any) {
       console.error("Buy It Now failed", error);
-      
+
       let errorMessage = "Failed to process request. Please try again.";
       // Handle specific Medusa errors (e.g., Stock Location missing)
       if (error.response?.data?.message) {
         errorMessage = error.response.data.message;
         // User friendly message for stock location error
         if (errorMessage.includes("associated with any stock location")) {
-          errorMessage = "System Error: Sales Channel is not linked to Inventory. Please contact support.";
+          errorMessage =
+            "System Error: Sales Channel is not linked to Inventory. Please contact support.";
         }
       }
 
@@ -152,7 +178,7 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
 
   if (loading) {
     return (
-      <section className="bg-white py-20 flex justify-center">
+      <section className="flex justify-center bg-white py-20">
         <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
       </section>
     );
@@ -161,17 +187,21 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
   // Fallback if no product found
   if (!product) {
     return (
-      <section className="bg-white py-20 flex justify-center">
+      <section className="flex justify-center bg-white py-20">
         <div className="text-center">
-           <p className="text-xl font-semibold text-gray-500">No products available.</p>
-           <p className="text-sm text-gray-400 mt-2">Check your connection or try again later.</p>
-           <Button 
-             variant="outline" 
-             className="mt-4"
-             onClick={() => window.location.reload()}
-           >
-             Retry
-           </Button>
+          <p className="text-xl font-semibold text-gray-500">
+            No products available.
+          </p>
+          <p className="mt-2 text-sm text-gray-400">
+            Check your connection or try again later.
+          </p>
+          <Button
+            variant="outline"
+            className="mt-4"
+            onClick={() => window.location.reload()}
+          >
+            Retry
+          </Button>
         </div>
       </section>
     );
@@ -180,21 +210,27 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
   // Helper to get display price (prioritize USD)
   const getDisplayPrice = (variant: ProductVariant | null) => {
     if (!variant) return { amount: 0, currency: "USD" };
-    
+
     // 1. Try to find USD price
-    const usdPrice = variant.prices?.find(p => p.currency_code.toLowerCase() === "usd");
+    const usdPrice = variant.prices?.find(
+      (p) => p.currency_code.toLowerCase() === "usd"
+    );
     if (usdPrice) return { amount: usdPrice.amount, currency: "USD" };
 
     // 2. Fallback to first price in prices array
     if (variant.prices && variant.prices.length > 0) {
-      return { amount: variant.prices[0].amount, currency: variant.prices[0].currency_code.toUpperCase() };
+      return {
+        amount: variant.prices[0].amount,
+        currency: variant.prices[0].currency_code.toUpperCase(),
+      };
     }
 
     // 3. Fallback to legacy price field
     return { amount: variant.price || 0, currency: "USD" };
   };
 
-  const { amount: priceAmount, currency: priceCurrency } = getDisplayPrice(selectedVariant);
+  const { amount: priceAmount, currency: priceCurrency } =
+    getDisplayPrice(selectedVariant);
 
   return (
     <section className="bg-white py-20 transition-colors duration-300">
@@ -203,20 +239,24 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
         <div className="mb-20 grid items-center gap-16 md:grid-cols-2">
           {/* Left - Product Image */}
           <div className="relative flex justify-center py-8">
-            <div className="group perspective-1000 relative h-80 w-64">
+            <div className="group perspective-1000 relative h-90 w-90">
               {/* CSS 3D Box Mockup */}
               <div className="transform-style-3d relative h-full w-full transition-transform duration-500 group-hover:rotate-y-12">
                 {/* Front Face */}
-                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center rounded-lg border border-purple-400/30 bg-gradient-to-br from-purple-600 to-purple-800 p-1 text-white shadow-2xl backface-hidden overflow-hidden">
-                   <img 
-                     src={product.images && product.images.length > 0 ? product.images[0].url : "/product-placeholder.svg"} 
-                     alt={product.title}
-                     className="h-full w-full object-cover rounded"
-                   />
+                <div className="absolute inset-0 z-20 flex flex-col items-center justify-center overflow-hidden text-white backface-hidden">
+                  <img
+                    src={
+                      product.images && product.images.length > 0
+                        ? product.images[0].url
+                        : "/product-placeholder.svg"
+                    }
+                    alt={product.title}
+                    className="h-full w-full rounded object-cover"
+                  />
                 </div>
 
                 {/* Side Face (Depth) */}
-                <div className="absolute top-0 right-0 flex h-full w-12 origin-right translate-x-12 -translate-z-[1px] rotate-y-90 transform items-center justify-center overflow-hidden rounded-r-lg bg-purple-900 brightness-75">
+                <div className="absolute top-0 right-0 flex h-full w-12 origin-right translate-x-12 -translate-z-[1px] rotate-y-90 transform items-center justify-center overflow-hidden rounded-r-lg bg-green-900 brightness-75">
                   <span className="-rotate-90 transform text-xs font-bold tracking-widest whitespace-nowrap text-white opacity-50">
                     TWITCH PROMO
                   </span>
@@ -243,18 +283,21 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
                   {/* Original Price (Strikethrough) - Compare At Price */}
                   {(selectedVariant.metadata?.compare_at_price || 0) > 0 && (
                     <span className="text-lg font-bold text-gray-400 line-through decoration-gray-400">
-                      {formatCurrency(((selectedVariant.metadata?.compare_at_price || 0) / 100), priceCurrency)}
+                      {formatCurrency(
+                        (selectedVariant.metadata?.compare_at_price || 0) / 100,
+                        priceCurrency
+                      )}
                     </span>
                   )}
                   {/* Current Price */}
-                  <span className="text-[24px] font-bold text-[#b02484]">
+                  <span className="text-[24px] font-bold text-[#22c55e]">
                     {formatCurrency(priceAmount / 100, priceCurrency)}
                   </span>
                   {/* Discount Text */}
                   {product.metadata?.discount_text && (
-                     <span className="ml-2 bg-red-100 text-red-600 text-xs px-2 py-1 rounded-full font-bold">
-                       {product.metadata.discount_text}
-                     </span>
+                    <span className="ml-2 rounded-full bg-red-100 px-2 py-1 text-xs font-bold text-red-600">
+                      {product.metadata.discount_text}
+                    </span>
                   )}
                 </>
               )}
@@ -270,10 +313,10 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
                   <button
                     key={variant.id}
                     onClick={() => handleVariantSelect(variant)}
-                    className={`cursor-pointer rounded px-6 py-2.5 text-sm font-bold shadow-sm transition-colors border ${
+                    className={`cursor-pointer rounded border px-6 py-2.5 text-sm font-medium shadow-sm transition-colors ${
                       selectedVariant?.id === variant.id
-                        ? "bg-[#9c2a8c] border-[#9c2a8c] text-white hover:bg-[#852277]"
-                        : "border-[#e5e7eb] bg-white text-[#9c2a8c] hover:border-[#9c2a8c]"
+                        ? "border-[#22c55e] bg-[#22c55e] text-white hover:bg-[#16a34a]"
+                        : "border-[#e5e7eb] bg-white text-[#22c55e] hover:border-[#22c55e]"
                     }`}
                   >
                     {variant.title}
@@ -284,10 +327,10 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
 
             {/* Buy Button */}
             <div className="space-y-4 pt-4">
-              <Button 
+              <Button
                 onClick={handleBuyItNow}
                 disabled={!selectedVariant || isBuying}
-                className="h-12 w-full cursor-pointer rounded bg-[#9c2a8c] text-[16px] font-bold text-white shadow transition-all hover:bg-[#852277] disabled:opacity-50 disabled:cursor-not-allowed"
+                className="h-12 w-full cursor-pointer rounded bg-[#22c55e] text-[16px] font-semibold text-white shadow transition-all hover:bg-[#16a34a] disabled:cursor-not-allowed disabled:opacity-50"
               >
                 {isBuying ? (
                   <Loader2 className="mr-2 h-5 w-5 animate-spin" />
@@ -300,7 +343,7 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
               {/* Full Details Link */}
               <Link
                 href={`/products/${product.id}`}
-                className="flex inline-block items-center text-sm text-[#3d4246] underline decoration-gray-300 underline-offset-4 hover:text-[#9c2a8c]"
+                className="flex inline-block items-center text-sm text-[#3d4246] underline decoration-gray-300 underline-offset-4 hover:text-[#22c55e]"
               >
                 Full details <span className="ml-1 text-xs">➜</span>
               </Link>
@@ -321,7 +364,7 @@ export function ProductSection({ initialProduct }: { initialProduct?: Product | 
           <div className="mx-auto mb-8 flex max-w-lg flex-col items-center gap-4">
             <a
               href="#"
-              className="border-b-2 border-black pb-0.5 font-bold text-black transition-colors hover:border-[#9c2a8c] hover:text-[#9c2a8c]"
+              className="border-b-2 border-black pb-0.5 font-bold text-black transition-colors hover:border-[#22c55e] hover:text-[#22c55e]"
             >
               https://www.thedoublekill.com/
             </a>

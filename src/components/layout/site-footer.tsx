@@ -7,7 +7,7 @@ import { Mail } from "lucide-react";
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden bg-[#332f7b] pt-16 pb-6 text-white">
+    <footer className="relative overflow-hidden bg-green-900 pt-16 pb-6 text-white">
       <div className="container mx-auto max-w-7xl px-6">
         <div className="mb-16 grid gap-8 md:grid-cols-4">
           {/* Logo & Brand */}
@@ -15,8 +15,8 @@ export function SiteFooter() {
             <div className="mb-6">
               {/* Using CSS Logo to match style if image fails, but mimicking the colorful poly head */}
               <div className="relative h-24 w-24">
-                <div className="clip-path-polygon absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-red-500 to-purple-600 p-1">
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-[#332f7b]">
+                <div className="clip-path-polygon absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-green-500 to-green-600 p-1">
+                  <div className="flex h-full w-full items-center justify-center rounded-full bg-green-900">
                     <span className="text-4xl">🎮</span>
                   </div>
                 </div>
@@ -37,7 +37,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-purple-200"
+                  className="font-light text-white transition-colors hover:text-green-200"
                 >
                   Privacy Policy
                 </Link>
@@ -45,7 +45,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-purple-200"
+                  className="font-light text-white transition-colors hover:text-green-200"
                 >
                   Refund Policy
                 </Link>
@@ -53,7 +53,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-purple-200"
+                  className="font-light text-white transition-colors hover:text-green-200"
                 >
                   Terms of Service
                 </Link>
@@ -103,9 +103,9 @@ export function SiteFooter() {
               <Input
                 type="email"
                 placeholder="Your email"
-                className="h-full rounded-l-sm rounded-r-none border-none bg-[#9c2a8c] px-4 text-white placeholder:text-purple-200 focus-visible:ring-0"
+                className="h-full rounded-l-sm rounded-r-none border-none bg-green-800 px-4 text-white placeholder:text-green-200 focus-visible:ring-0"
               />
-              <Button className="flex h-full w-12 shrink-0 items-center justify-center rounded-l-none rounded-r-sm bg-white text-[#9c2a8c] hover:bg-gray-100">
+              <Button className="flex h-full w-12 shrink-0 items-center justify-center rounded-l-none rounded-r-sm bg-white text-green-800 hover:bg-gray-100">
                 <Mail className="h-5 w-5" />
               </Button>
             </div>
@@ -155,14 +155,14 @@ export function SiteFooter() {
 
       {/* Floating 10% OFF Badge */}
       <div className="pointer-events-none absolute right-0 bottom-0 z-20 h-40 w-40 overflow-hidden">
-        <div className="pointer-events-auto absolute -right-[45px] bottom-[25px] w-[170px] -rotate-45 transform cursor-pointer border-2 border-white bg-[#d69dfc] py-2 text-center text-sm font-bold text-black shadow-lg transition-colors hover:bg-[#c67dfc]">
+        <div className="pointer-events-auto absolute -right-[45px] bottom-[25px] w-[170px] -rotate-45 transform cursor-pointer border-2 border-white bg-green-500 py-2 text-center text-sm font-bold text-white shadow-lg transition-colors hover:bg-green-600">
           GET 10% OFF
         </div>
       </div>
 
       {/* Floating Chat Icon (Fake) */}
       <div className="fixed bottom-6 left-6 z-50">
-        <button className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-[#9c2a8c] shadow-lg transition-transform hover:scale-110">
+        <button className="flex h-14 w-14 cursor-pointer items-center justify-center rounded-full bg-green-600 shadow-lg transition-transform hover:scale-110">
           <div className="relative">
             <svg
               className="h-7 w-7 text-white"

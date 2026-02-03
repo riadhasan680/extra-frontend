@@ -38,7 +38,7 @@ export function SiteHeader() {
     >
       {/* Top Bar - Only visible when not scrolled */}
       {!isScrolled && (
-        <div className="w-full bg-[#332f7b] px-4 py-2 text-lg text-white">
+        <div className="w-full bg-green-900 px-4 py-2 text-[17px] tracking-wide text-white">
           <div className="w-full max-w-full px-6">
             <div className="flex justify-center">
               <div className="text-center">
@@ -84,19 +84,19 @@ export function SiteHeader() {
           >
             <Link
               href="#"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-purple-400`}
+              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
             >
               Twitch Promotion
             </Link>
             <Link
               href="#"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-purple-400`}
+              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
             >
               Contact Us
             </Link>
             <Link
               href="#"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-purple-400`}
+              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
             >
               Kick Promotion
             </Link>
@@ -105,7 +105,7 @@ export function SiteHeader() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} flex items-center gap-2 font-semibold transition-colors hover:text-purple-400`}
+                className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} flex items-center gap-2 font-semibold transition-colors hover:text-green-400`}
               >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
@@ -114,13 +114,13 @@ export function SiteHeader() {
               <div className="flex items-center gap-4">
                 <Link
                   href="/login"
-                  className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-purple-400`}
+                  className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
                 >
                   Login
                 </Link>
                 <Link
                   href="/register"
-                  className={`rounded-full bg-purple-600 px-6 py-2 text-lg font-semibold text-white transition-colors hover:bg-purple-700`}
+                  className={`rounded-full bg-green-600 px-6 py-2 text-lg font-medium text-white transition-colors hover:bg-green-700`}
                 >
                   Join Now
                 </Link>
@@ -129,7 +129,7 @@ export function SiteHeader() {
 
             <Link
               href="/cart"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} transition-colors hover:text-purple-400`}
+              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} transition-colors hover:text-green-400`}
             >
               <ShoppingCart className="h-6 w-6" />
             </Link>
@@ -156,14 +156,14 @@ export function SiteHeader() {
             <nav className="flex flex-col gap-4">
               <Link
                 href="#"
-                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-purple-600 dark:text-white dark:hover:text-purple-400"
+                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-green-600 dark:text-white dark:hover:text-green-400"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Twitch Promotion
               </Link>
               <Link
                 href="#"
-                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-purple-600 dark:text-white dark:hover:text-purple-400"
+                className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-green-600 dark:text-white dark:hover:text-green-400"
                 onClick={() => setIsMobileMenuOpen(false)}
               >
                 Contact Us
@@ -173,7 +173,7 @@ export function SiteHeader() {
                 {user ? (
                   <Link
                     href="/dashboard"
-                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-purple-100 py-3 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300"
+                    className="flex w-full items-center justify-center gap-2 rounded-lg bg-green-100 py-3 text-green-700 dark:bg-green-900/30 dark:text-green-300"
                     onClick={() => setIsMobileMenuOpen(false)}
                   >
                     <LayoutDashboard className="h-5 w-5" />
@@ -183,14 +183,14 @@ export function SiteHeader() {
                   <>
                     <Link
                       href="/login"
-                      className="w-full rounded-lg border border-purple-200 py-3 text-center font-semibold text-purple-700 hover:bg-purple-50 dark:border-purple-800 dark:text-purple-300 dark:hover:bg-purple-900/30"
+                      className="w-full rounded-lg border border-green-200 py-3 text-center font-semibold text-green-700 hover:bg-green-50 dark:border-green-800 dark:text-green-300 dark:hover:bg-green-900/30"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Login
                     </Link>
                     <Link
                       href="/register"
-                      className="w-full rounded-lg bg-purple-600 py-3 text-center font-semibold text-white hover:bg-purple-700 dark:bg-purple-700 dark:hover:bg-purple-600"
+                      className="w-full rounded-lg bg-green-600 py-3 text-center font-semibold text-white hover:bg-green-700 dark:bg-green-700 dark:hover:bg-green-600"
                       onClick={() => setIsMobileMenuOpen(false)}
                     >
                       Sign Up Free
