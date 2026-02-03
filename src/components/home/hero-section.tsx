@@ -17,23 +17,14 @@ export function HeroSection() {
         <div className="animate-spin-slow absolute top-20 right-1/4 h-32 w-32 rotate-45 border-2 border-green-400/20 will-change-transform"></div>
         <div className="animate-float-slow absolute bottom-40 left-1/3 h-24 w-24 rounded-lg border-2 border-green-500/20 will-change-transform"></div>
 
-        {/* Dot Pattern - Increased opacity */}
-        <div
-          className="absolute inset-0 opacity-[0.08]"
-          style={{
-            backgroundImage: `radial-gradient(circle, #22c55e 1px, transparent 1px)`,
-            backgroundSize: "24px 24px",
-          }}
-        ></div>
-
-        {/* Subtle Grid Lines - Increased opacity */}
+        {/* Subtle Grid Lines - Increased opacity and fixed ID */}
         <svg
-          className="absolute inset-0 h-full w-full opacity-[0.05]"
+          className="absolute inset-0 h-full w-full opacity-[0.1]"
           xmlns="http://www.w3.org/2000/svg"
         >
           <defs>
             <pattern
-              id="grid"
+              id="hero-grid-pattern"
               width="40"
               height="40"
               patternUnits="userSpaceOnUse"
@@ -46,7 +37,7 @@ export function HeroSection() {
               />
             </pattern>
           </defs>
-          <rect width="100%" height="100%" fill="url(#grid)" />
+          <rect width="100%" height="100%" fill="url(#hero-grid-pattern)" />
         </svg>
       </div>
 
