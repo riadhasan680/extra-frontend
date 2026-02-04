@@ -60,42 +60,72 @@ function CheckoutContent() {
           const isPaymentReturn = searchParams.get("payment_return") === "true";
           
           if (pendingCartId && (urlSessionId || searchParams.get("payment_status") || isPaymentReturn)) {
-             console.log("Detected return from Dodo Payment. Completing cart:", pendingCartId);
+             console.log("Detected return from Dodo Payment. Verifying cart:", pendingCartId);
              setLoading(true);
              
              try {
-                 const order = await storeService.completeCart(pendingCartId);
-                 // Strict check: Ensure it is an ORDER, not just a cart
-                 if (order && order.type === "order") {
-                     // Success!
-                     localStorage.removeItem("dodo_pending_cart_id");
-                     // Mark user as returning customer
-      localStorage.setItem("is_returning_customer", "true");
-      setCompleted(true);
-                 } else {
-                     console.warn("Cart completion returned non-order (likely still cart due to payment pending):", order);
-                     // Check if payment status is captured/authorized in the returned cart
-                     if (order.payment_session?.status === "authorized" || order.payment_session?.status === "captured") {
-                         // It seems authorized but order not created? Retry or assume success?
-                         // Ideally completeCart should return order.
-                         setPageError("Payment authorized but order creation failed. Please contact support.");
+                 // Step 1: Fetch the cart to check payment status
+                 // We might need to poll for a few seconds if the webhook is slow
+                 let cart = await storeService.getCart(pendingCartId);
+                 let attempts = 0;
+                 const maxAttempts = 5;
+
+                 // Poll if payment is still pending
+                 while (cart?.payment_session?.status === "pending" && attempts < maxAttempts) {
+                    console.log(`Payment pending, polling attempt ${attempts + 1}...`);
+                    await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s
+                    cart = await storeService.getCart(pendingCartId);
+                    attempts++;
+                 }
+
+                 if (cart?.payment_session?.status === "authorized" || cart?.payment_session?.status === "captured") {
+                     console.log("Payment authorized. Completing cart...");
+                     const order = await storeService.completeCart(pendingCartId);
+                     
+                     if (order && order.type === "order") {
+                         // Success!
+                         localStorage.removeItem("dodo_pending_cart_id");
+                         localStorage.setItem("is_returning_customer", "true");
+                         setCompleted(true);
                      } else {
-                         setPageError("Payment verification failed. Status: " + (order.payment_session?.status || "unknown"));
+                        // Edge case: completeCart returned cart (not order) but payment is authorized
+                        console.warn("Cart completion returned non-order:", order);
+                        if (order.payment_session?.status === "authorized") {
+                             // Force retry or consider it done? 
+                             // Usually means some other validation failed.
+                             setPageError("Order creation failed even though payment was authorized. Please contact support.");
+                        } else {
+                             setPageError("Payment verification failed. Status: " + (order.payment_session?.status || "unknown"));
+                        }
+                     }
+                 } else {
+                     // Still pending or failed
+                     console.warn("Payment status not authorized after polling:", cart?.payment_session?.status);
+                     if (cart?.payment_session?.status === "pending") {
+                        setPageError("Payment is still processing. Please wait a moment and try refreshing.");
+                     } else {
+                        setPageError(`Payment failed or cancelled. Status: ${cart?.payment_session?.status}`);
                      }
                  }
              } catch (error: any) {
                  console.error("Failed to complete cart after return:", error);
-                 // Don't clear localStorage yet, maybe transient error? 
-                 // Actually, if it failed, we probably want to let user try again.
-                 localStorage.removeItem("dodo_pending_cart_id"); 
-                 setPageError(error.message || "Payment verification failed.");
+                 // If 409, it means conflict (likely status).
+                 if (error.response?.status === 409) {
+                    setPageError("Payment processing conflict. The payment might not be confirmed yet.");
+                 } else {
+                    setPageError(error.message || "Payment verification failed.");
+                 }
+                 // Keep the pending ID in case they want to retry
              } finally {
                  setLoading(false);
              }
           }
       };
       
-      checkPaymentReturn();
+      if (!initialized.current) {
+        initialized.current = true;
+        checkPaymentReturn();
+      }
   }, [searchParams]);
 
   useEffect(() => {
