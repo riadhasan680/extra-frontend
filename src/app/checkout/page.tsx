@@ -242,6 +242,19 @@ function CheckoutContent() {
     }
   }, [cartId, cart?.id]); // Run once when cart is loaded
 
+  // Auto-select valid country from region
+  useEffect(() => {
+    if (cart?.region?.countries && cart.region.countries.length > 0) {
+       const validCountries = cart.region.countries.map((c: any) => c.iso_2);
+       if (!validCountries.includes(countryCode)) {
+           // Default to first country in region if current selection is invalid
+           // This prevents 400 Bad Request errors on address update
+           console.log("Auto-switching country to valid region country:", validCountries[0]);
+           setCountryCode(validCountries[0]);
+       }
+    }
+  }, [cart?.region?.id]);
+
   const handleApplyDiscount = async () => {
     if (!discountCode.trim() || !cartId) return;
     
@@ -298,15 +311,39 @@ function CheckoutContent() {
       
       if (cartId) {
           // 0. Update Cart with Email and Address (Required for Order Creation)
+          // Validation Check
+          if (!email || !firstName || !lastName || !address1 || !city || !postalCode) {
+             toast({
+               title: "Missing Information",
+               description: "Please fill in all required fields (Email, Name, Address, City, Postal Code).",
+               variant: "destructive"
+             });
+             setProcessing(false);
+             return;
+          }
+
+          // VALIDATION: Country Code vs Region
+          // This is critical to prevent 400 Bad Request
+          let finalCountryCode = countryCode;
+          if (cart?.region?.countries && cart.region.countries.length > 0) {
+              const validCodes = cart.region.countries.map((c: any) => c.iso_2);
+              if (!validCodes.includes(countryCode)) {
+                  console.warn(`CHECKOUT FIX: Selected country ${countryCode} not in region. Auto-selecting ${validCodes[0]}`);
+                  finalCountryCode = validCodes[0];
+                  // Update state too so UI reflects it eventually
+                  setCountryCode(validCodes[0]); 
+              }
+          }
+
           const addressData = {
               first_name: firstName,
               last_name: lastName,
               address_1: address1,
               city: city,
-              country_code: countryCode,
+              country_code: finalCountryCode, // Use validated code
               postal_code: postalCode,
               phone: phone,
-              province: province,
+              province: province || "", // Ensure no nulls
           };
 
           try {
@@ -315,12 +352,20 @@ function CheckoutContent() {
               await storeService.updateCart(cartId, { 
                   email,
                   shipping_address: addressData,
-                  billing_address: billingSameAsShipping ? addressData : addressData // TODO: Add separate billing form
+                  billing_address: billingSameAsShipping ? addressData : addressData 
               });
-          } catch (e) {
-              console.warn("Failed to update cart address/email", e);
-              // We continue because maybe it was already set? 
-              // But likely it will fail later if address is missing.
+          } catch (e: any) {
+              console.error("Failed to update cart address/email", e);
+              // CRITICAL: If we can't save the email, we MUST NOT proceed to payment.
+              // Otherwise we get orders without customers/emails.
+              setProcessing(false);
+              setPaymentError(e.message || "Failed to save contact information. Please check your inputs and try again.");
+              toast({
+                  title: "Error",
+                  description: e.message || "Failed to save contact information. Please try again.",
+                  variant: "destructive"
+              });
+              return; // Stop execution
           }
 
           // Call Dodo Payment API (Medusa v2 Flow)
@@ -446,55 +491,112 @@ function CheckoutContent() {
   }
 
   if (completed) {
+    // Consolidate display data with fallbacks to ensure data is always shown
+    const displayData = {
+        id: order?.display_id || order?.id?.slice(-6) || "Pending",
+        date: new Date().toLocaleDateString(),
+        email: order?.email || cart?.email || email,
+        total: order?.total ?? cart?.total ?? 0,
+        currency: order?.currency_code || cart?.currency_code || "USD",
+        firstName: order?.shipping_address?.first_name || cart?.shipping_address?.first_name || firstName,
+        lastName: order?.shipping_address?.last_name || cart?.shipping_address?.last_name || lastName,
+    };
+
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center space-y-8 px-4 text-center bg-gray-50 py-12">
-        <div className="relative">
-          <div className="absolute inset-0 animate-ping rounded-full bg-green-400 opacity-20"></div>
-          <div className="relative rounded-full bg-green-100 p-6 dark:bg-green-900/20">
-            <CheckCircle2 className="h-20 w-20 text-green-600" />
-          </div>
-        </div>
-        
-        <div className="space-y-2">
-          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Order Confirmed!</h1>
-          <p className="text-lg text-gray-600 max-w-md mx-auto">
-            Thank you for your purchase. We have received your order and will begin processing it shortly.
-          </p>
+      <div className="flex min-h-screen flex-col items-center justify-center bg-gray-50 py-12 px-4 relative overflow-hidden">
+        {/* Background Decoration */}
+        <div className="absolute inset-0 z-0 opacity-30 pointer-events-none">
+            <div className="absolute top-0 left-0 w-full h-full bg-[radial-gradient(circle_at_50%_120%,rgba(120,50,150,0.1),rgba(255,255,255,0))]" />
+            <div className="absolute -top-[20%] -right-[10%] w-[500px] h-[500px] rounded-full bg-purple-100 blur-3xl opacity-50" />
+            <div className="absolute top-[20%] -left-[10%] w-[300px] h-[300px] rounded-full bg-blue-100 blur-3xl opacity-50" />
         </div>
 
-        {order && (
-          <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden text-left">
-            <div className="bg-gray-50/50 p-4 border-b border-gray-100 flex justify-between items-center">
-              <span className="font-medium text-gray-900">Order #{order.display_id || order.id?.slice(-6)}</span>
-              <span className="text-sm text-gray-500">{new Date().toLocaleDateString()}</span>
-            </div>
-            <div className="p-6 space-y-4">
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Payment Status</span>
-                <span className="font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Paid</span>
-              </div>
-              <div className="flex justify-between text-sm">
-                <span className="text-gray-500">Email</span>
-                <span className="font-medium text-gray-900">{order.email}</span>
-              </div>
-              <Separator />
-              <div className="flex justify-between items-center">
-                <span className="font-medium text-gray-900">Total</span>
-                <span className="text-xl font-bold text-[#9c2a8c]">
-                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency_code?.toUpperCase() || 'USD' }).format((order.total || 0) / 100)}
-                </span>
-              </div>
-            </div>
-          </div>
-        )}
+        <div className="relative z-10 w-full max-w-lg mx-auto animate-in fade-in zoom-in duration-500 slide-in-from-bottom-4">
+            <div className="bg-white rounded-lg  overflow-hidden border border-green-200">
+                {/* Header Section */}
+                <div className="bg-gradient-to-b from-green-50 to-white pt-10 pb-6 flex flex-col items-center text-center px-6">
+                    <div className="relative mb-6">
+                        <div className="absolute inset-0 animate-ping rounded-full bg-green-400 opacity-20 duration-1000"></div>
+                        <div className="relative rounded-full bg-green-100 p-5 shadow-sm ring-4 ring-white">
+                            <CheckCircle2 className="h-16 w-16 text-green-600 drop-shadow-sm" />
+                        </div>
+                    </div>
+                    
+                    <h1 className="text-3xl font-bold tracking-tight text-gray-900 mb-2">Order <span className="text-green-600">Confirmed</span></h1>
+                    <p className="text-gray-500 max-w-xs mx-auto">
+                        Thank you for your purchase, <span className="font-medium text-gray-900">{displayData.firstName}</span>! We've sent a confirmation email to <span className="font-medium text-gray-900">{displayData.email}</span>.
+                    </p>
+                </div>
 
-        <div className="flex flex-col sm:flex-row gap-4 pt-4">
-          <Button onClick={() => router.push("/")} className="min-w-[200px] bg-[#9c2a8c] hover:bg-[#852277] h-12 text-lg shadow-lg shadow-purple-900/10">
-            Return to Home
-          </Button>
-          <Button variant="outline" onClick={() => router.push("/dashboard/orders")} className="min-w-[200px] h-12 text-lg bg-white">
-            View Order
-          </Button>
+                {/* Order Details Card */}
+                <div className="px-6 pb-6">
+                    <div className="bg-gray-50 rounded-lg p-5 border border-gray-100 space-y-4">
+                        <div className="flex justify-between items-center pb-4 border-b border-gray-200">
+                            <div>
+                                <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Order Number</p>
+                                <p className="text-lg font-bold text-gray-900">#{displayData.id}</p>
+                            </div>
+                            <div className="text-right">
+                                <p className="text-xs text-gray-500 uppercase tracking-wide font-semibold">Date</p>
+                                <p className="text-sm font-medium text-gray-900">{displayData.date}</p>
+                            </div>
+                        </div>
+
+                        <div className="space-y-3">
+                             {/* Customer Details */}
+                             <div className="flex justify-between text-sm py-2 border-b border-gray-100 border-dashed">
+                                <span className="text-gray-600">Customer</span>
+                                <div className="text-right">
+                                    <p className="font-medium text-gray-900">{displayData.firstName} {displayData.lastName}</p>
+                                    <p className="text-xs text-gray-500">{displayData.email}</p>
+                                </div>
+                             </div>
+
+                             <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Payment Method</span>
+                                <span className="font-medium text-gray-900 flex items-center gap-1">
+                                    <CreditCard className="h-3 w-3" />
+                                    Card / Online
+                                </span>
+                             </div>
+                             <div className="flex justify-between text-sm">
+                                <span className="text-gray-600">Payment Status</span>
+                                <span className="font-medium text-green-700 bg-green-100 px-2 py-0.5 rounded text-xs border border-green-200">Paid</span>
+                             </div>
+                        </div>
+
+                        <div className="pt-4 border-t border-gray-200">
+                             <div className="flex justify-between items-end">
+                                <span className="text-sm font-medium text-gray-600 mb-1">Total Amount</span>
+                                <span className="text-3xl font-bold text-[#9c2a8c]">
+                                    {new Intl.NumberFormat('en-US', { style: 'currency', currency: displayData.currency.toUpperCase() }).format(displayData.total / 100)}
+                                </span>
+                             </div>
+                        </div>
+                    </div>
+
+                    {/* Actions */}
+                    <div className="mt-8 space-y-3">
+                        <Button 
+                            onClick={() => router.push("/")} 
+                            className="w-full bg-green-600 hover:bg-green-700 cursor-pointer h-12 text-white text-[18px] font-medium shadow-lg shadow-green-900/20 transition-all hover:scale-[1.02] active:scale-[0.98]"
+                        >
+                            Return to Home
+                        </Button>
+                        <Button 
+                            variant="outline" 
+                            onClick={() => router.push("/dashboard/orders")} 
+                            className="w-full h-12 text-base cursor-pointer font-medium border-gray-200 hover:bg-gray-50 hover:text-green-600 transition-colors"
+                        >
+                            View Order Details
+                        </Button>
+                    </div>
+                </div>
+            </div>
+            
+            <p className="mt-8 text-center text-xs text-gray-400">
+                Need help? <a href="#" className="underline hover:text-gray-600">Contact Support</a>
+            </p>
         </div>
       </div>
     );
@@ -718,10 +820,20 @@ function CheckoutContent() {
                   <SelectValue placeholder="Country/Region" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="us">United States</SelectItem>
-                  <SelectItem value="ca">Canada</SelectItem>
-                  <SelectItem value="uk">United Kingdom</SelectItem>
-                  <SelectItem value="bd">Bangladesh</SelectItem>
+                  {cart?.region?.countries && cart.region.countries.length > 0 ? (
+                     cart.region.countries.map((c: any) => (
+                       <SelectItem key={c.id} value={c.iso_2}>
+                         {c.display_name}
+                       </SelectItem>
+                     ))
+                  ) : (
+                    <>
+                      <SelectItem value="us">United States</SelectItem>
+                      <SelectItem value="ca">Canada</SelectItem>
+                      <SelectItem value="gb">United Kingdom</SelectItem>
+                      <SelectItem value="bd">Bangladesh</SelectItem>
+                    </>
+                  )}
                 </SelectContent>
               </Select>
 

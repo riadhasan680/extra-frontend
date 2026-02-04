@@ -46,7 +46,7 @@ export const storeService = {
       // We explicitly request payment_collection to check status
       const response = await api.get<{ cart: any }>(`/store/carts/${cartId}`, {
         params: {
-            fields: "id,region_id,email,shipping_address,billing_address,currency_code,total,subtotal,tax_total,discount_total,*items,*items.variant,*items.variant.product,*items.variant.product.images,*promotions,*payment_collection,*payment_collection.payment_sessions"
+            fields: "id,region_id,email,shipping_address,billing_address,currency_code,total,subtotal,tax_total,discount_total,*items,*items.variant,*items.variant.product,*items.variant.product.images,*promotions,*payment_collection,*payment_collection.payment_sessions,*region,*region.countries"
         }
       });
       return response.data.cart;
@@ -61,9 +61,14 @@ export const storeService = {
     try {
       const response = await api.post(`/store/carts/${cartId}`, payload);
       return response.data.cart;
-    } catch (error) {
+    } catch (error: any) {
       console.warn("API failed to update cart", error);
-      throw error;
+      // Try to extract detailed error message from Medusa response
+      const errorMessage = error.response?.data?.message || 
+                           error.response?.data?.error?.message || 
+                           error.message || 
+                           "Unknown error occurred";
+      throw new Error(errorMessage);
     }
   },
 
