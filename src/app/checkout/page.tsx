@@ -67,46 +67,70 @@ function CheckoutContent() {
                  // Step 1: Fetch the cart to check payment status
                  // We might need to poll for a few seconds if the webhook is slow
                  let cart = await storeService.getCart(pendingCartId);
+                 
+                 // Helper function to extract payment status from Medusa v2 Cart (PaymentCollection) or v1 (PaymentSession)
+                 const getPaymentStatus = (c: any) => {
+                     // Medusa v2: Check Payment Collection
+                     if (c?.payment_collection) {
+                         const pc = c.payment_collection;
+                         if (pc.status === 'authorized' || pc.status === 'partially_authorized') return 'authorized';
+                         
+                         // Check individual sessions if collection status is not definitive
+                         const dodoSession = pc.payment_sessions?.find((s: any) => s.provider_id === 'pp_dodo_dodo');
+                         if (dodoSession?.status === 'authorized') return 'authorized';
+                         if (dodoSession?.status === 'pending') return 'pending';
+                         
+                         return pc.status; // e.g., 'not_paid', 'awaiting'
+                     }
+                     // Medusa v1 fallback
+                     return c?.payment_session?.status || 'unknown';
+                 };
+
+                 let status = getPaymentStatus(cart);
                  let attempts = 0;
                  const maxAttempts = 5;
 
-                 // Poll if payment is still pending
-                 while (cart?.payment_session?.status === "pending" && attempts < maxAttempts) {
-                    console.log(`Payment pending, polling attempt ${attempts + 1}...`);
+                 // Poll if payment is still pending/not_paid
+                 while ((status === "pending" || status === "not_paid" || status === "awaiting") && attempts < maxAttempts) {
+                    console.log(`Payment status: ${status}, polling attempt ${attempts + 1}...`);
                     await new Promise(resolve => setTimeout(resolve, 2000)); // Wait 2s
                     cart = await storeService.getCart(pendingCartId);
+                    status = getPaymentStatus(cart);
                     attempts++;
                  }
-
-                 if (cart?.payment_session?.status === "authorized" || cart?.payment_session?.status === "captured") {
-                     console.log("Payment authorized. Completing cart...");
-                     const order = await storeService.completeCart(pendingCartId);
-                     
-                     if (order && order.type === "order") {
-                         // Success!
-                         localStorage.removeItem("dodo_pending_cart_id");
-                         localStorage.setItem("is_returning_customer", "true");
-                         setCompleted(true);
-                     } else {
-                        // Edge case: completeCart returned cart (not order) but payment is authorized
-                        console.warn("Cart completion returned non-order:", order);
-                        if (order.payment_session?.status === "authorized") {
-                             // Force retry or consider it done? 
-                             // Usually means some other validation failed.
-                             setPageError("Order creation failed even though payment was authorized. Please contact support.");
-                        } else {
-                             setPageError("Payment verification failed. Status: " + (order.payment_session?.status || "unknown"));
-                        }
-                     }
-                 } else {
-                     // Still pending or failed
-                     console.warn("Payment status not authorized after polling:", cart?.payment_session?.status);
-                     if (cart?.payment_session?.status === "pending") {
-                        setPageError("Payment is still processing. Please wait a moment and try refreshing.");
-                     } else {
-                        setPageError(`Payment failed or cancelled. Status: ${cart?.payment_session?.status}`);
-                     }
-                 }
+ 
+                 if (status === "authorized" || status === "captured") {
+                      console.log("Payment authorized. Completing cart...");
+                      const order = await storeService.completeCart(pendingCartId);
+                      
+                      if (order && order.type === "order") {
+                          // Success!
+                          localStorage.removeItem("dodo_pending_cart_id");
+                          localStorage.setItem("is_returning_customer", "true");
+                          setCompleted(true);
+                      } else {
+                         // Edge case: completeCart returned cart (not order) but payment is authorized
+                         console.warn("Cart completion returned non-order:", order);
+                         // Check status on the returned object (which might be cart or order)
+                         const orderStatus = getPaymentStatus(order);
+                         
+                         if (orderStatus === "authorized") {
+                              // Force retry or consider it done? 
+                              // Usually means some other validation failed.
+                              setPageError("Order creation failed even though payment was authorized. Please contact support.");
+                         } else {
+                              setPageError("Payment verification failed. Status: " + (orderStatus || "unknown"));
+                         }
+                      }
+                  } else {
+                      // Still pending or failed
+                      console.warn("Payment status not authorized after polling:", status);
+                      if (status === "pending" || status === "awaiting" || status === "not_paid") {
+                         setPageError("Payment is still processing. Please wait a moment and try refreshing.");
+                      } else {
+                         setPageError(`Payment failed or cancelled. Status: ${status}`);
+                      }
+                  }
              } catch (error: any) {
                  console.error("Failed to complete cart after return:", error);
                  // If 409, it means conflict (likely status).

@@ -43,9 +43,10 @@ export const storeService = {
   getCart: async (cartId: string) => {
     try {
       // Medusa v2: Ensure we fetch nested relations for the cart items
+      // We explicitly request payment_collection to check status
       const response = await api.get<{ cart: any }>(`/store/carts/${cartId}`, {
         params: {
-            fields: "id,region_id,email,shipping_address,billing_address,currency_code,total,subtotal,tax_total,discount_total,*items,*items.variant,*items.variant.product,*items.variant.product.images,*promotions"
+            fields: "id,region_id,email,shipping_address,billing_address,currency_code,total,subtotal,tax_total,discount_total,*items,*items.variant,*items.variant.product,*items.variant.product.images,*promotions,*payment_collection,*payment_collection.payment_sessions"
         }
       });
       return response.data.cart;
