@@ -26,6 +26,7 @@ function CheckoutContent() {
   const [loading, setLoading] = useState(true);
   const [processing, setProcessing] = useState(false);
   const [completed, setCompleted] = useState(false);
+  const [order, setOrder] = useState<any>(null);
   const [pageError, setPageError] = useState<string | null>(null); // Critical error preventing page load
   const [paymentError, setPaymentError] = useState<string | null>(null); // Error during payment submission
 
@@ -101,28 +102,47 @@ function CheckoutContent() {
  
                  if (status === "authorized" || status === "captured") {
                       console.log("Payment authorized. Completing cart...");
-                      const order = await storeService.completeCart(pendingCartId);
+                      const orderData = await storeService.completeCart(pendingCartId);
                       
-                      if (order && order.type === "order") {
+                      if (orderData && orderData.type === "order") {
                           // Success!
                           localStorage.removeItem("dodo_pending_cart_id");
                           localStorage.setItem("is_returning_customer", "true");
+                          setOrder(orderData.data);
                           setCompleted(true);
                       } else {
                          // Edge case: completeCart returned cart (not order) but payment is authorized
-                         console.warn("Cart completion returned non-order:", order);
+                         console.warn("Cart completion returned non-order:", orderData);
                          // Check status on the returned object (which might be cart or order)
-                         const orderStatus = getPaymentStatus(order);
+                         const orderStatus = getPaymentStatus(orderData);
                          
                          if (orderStatus === "authorized") {
-                              // Force retry or consider it done? 
-                              // Usually means some other validation failed.
                               setPageError("Order creation failed even though payment was authorized. Please contact support.");
                          } else {
                               setPageError("Payment verification failed. Status: " + (orderStatus || "unknown"));
                          }
                       }
                   } else {
+                      // Fallback: If URL indicates success, try to complete anyway
+                      const isUrlSuccess = searchParams.get("status") === "succeeded" || searchParams.get("payment_return") === "true";
+                      
+                      if (isUrlSuccess) {
+                          console.log("Payment status pending but URL indicates success. Attempting to force complete cart...");
+                          try {
+                               const orderData = await storeService.completeCart(pendingCartId);
+                               if (orderData && orderData.type === "order") {
+                                   // Success via fallback!
+                                   localStorage.removeItem("dodo_pending_cart_id");
+                                   localStorage.setItem("is_returning_customer", "true");
+                                   setOrder(orderData.data);
+                                   setCompleted(true);
+                                   return;
+                               }
+                          } catch (e) {
+                               console.warn("Force completion failed:", e);
+                          }
+                      }
+
                       // Still pending or failed
                       console.warn("Payment status not authorized after polling:", status);
                       if (status === "pending" || status === "awaiting" || status === "not_paid") {
@@ -427,17 +447,55 @@ function CheckoutContent() {
 
   if (completed) {
     return (
-      <div className="flex min-h-screen flex-col items-center justify-center space-y-6 px-4 text-center bg-gray-50">
-        <div className="rounded-full bg-green-100 p-4 dark:bg-green-900/20">
-          <CheckCircle2 className="h-20 w-20 text-green-500" />
+      <div className="flex min-h-screen flex-col items-center justify-center space-y-8 px-4 text-center bg-gray-50 py-12">
+        <div className="relative">
+          <div className="absolute inset-0 animate-ping rounded-full bg-green-400 opacity-20"></div>
+          <div className="relative rounded-full bg-green-100 p-6 dark:bg-green-900/20">
+            <CheckCircle2 className="h-20 w-20 text-green-600" />
+          </div>
         </div>
-        <h1 className="text-4xl font-bold tracking-tight text-gray-900">Order Confirmed!</h1>
-        <p className="text-lg text-gray-600 max-w-md">
-          Thank you for your purchase. We have received your order and will begin processing it shortly.
-        </p>
-        <Button onClick={() => router.push("/")} className="mt-8 min-w-[200px] bg-[#9c2a8c] hover:bg-[#852277] h-12 text-lg">
-          Return to Home
-        </Button>
+        
+        <div className="space-y-2">
+          <h1 className="text-4xl font-bold tracking-tight text-gray-900">Order Confirmed!</h1>
+          <p className="text-lg text-gray-600 max-w-md mx-auto">
+            Thank you for your purchase. We have received your order and will begin processing it shortly.
+          </p>
+        </div>
+
+        {order && (
+          <div className="w-full max-w-md bg-white rounded-xl shadow-sm border border-gray-100 overflow-hidden text-left">
+            <div className="bg-gray-50/50 p-4 border-b border-gray-100 flex justify-between items-center">
+              <span className="font-medium text-gray-900">Order #{order.display_id || order.id?.slice(-6)}</span>
+              <span className="text-sm text-gray-500">{new Date().toLocaleDateString()}</span>
+            </div>
+            <div className="p-6 space-y-4">
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Payment Status</span>
+                <span className="font-medium text-green-600 bg-green-50 px-2 py-0.5 rounded-full">Paid</span>
+              </div>
+              <div className="flex justify-between text-sm">
+                <span className="text-gray-500">Email</span>
+                <span className="font-medium text-gray-900">{order.email}</span>
+              </div>
+              <Separator />
+              <div className="flex justify-between items-center">
+                <span className="font-medium text-gray-900">Total</span>
+                <span className="text-xl font-bold text-[#9c2a8c]">
+                  {new Intl.NumberFormat('en-US', { style: 'currency', currency: order.currency_code?.toUpperCase() || 'USD' }).format((order.total || 0) / 100)}
+                </span>
+              </div>
+            </div>
+          </div>
+        )}
+
+        <div className="flex flex-col sm:flex-row gap-4 pt-4">
+          <Button onClick={() => router.push("/")} className="min-w-[200px] bg-[#9c2a8c] hover:bg-[#852277] h-12 text-lg shadow-lg shadow-purple-900/10">
+            Return to Home
+          </Button>
+          <Button variant="outline" onClick={() => router.push("/dashboard/orders")} className="min-w-[200px] h-12 text-lg bg-white">
+            View Order
+          </Button>
+        </div>
       </div>
     );
   }
