@@ -38,6 +38,7 @@ export interface ProductVariant {
 
 export interface Product {
   id: string;
+  handle?: string; // Medusa product handle
   title: string; // Changed from name to title per API
   subtitle?: string;
   description: string;
@@ -58,12 +59,12 @@ export interface Product {
 
 export interface Order {
   id: string;
-  productId: string;
-  userId: string; // The affiliate who referred
   amount: number;
-  commissionAmount: number;
-  status: "pending" | "completed" | "refunded" | "canceled";
+  status: string;
   createdAt: string;
+  commissionAmount?: number;
+  productId?: string;
+  userId?: string;
 }
 
 export interface Wallet {

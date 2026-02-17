@@ -11,25 +11,15 @@ import {
 export const authService = {
   // Register new affiliate
   register: async (data: RegisterData): Promise<AuthResponse> => {
-    // Transform data to snake_case if needed by backend, 
-    // but RegisterData interface already uses snake_case for referral_code
-    // The backend expects: email, password, name, referral_code
-    
-    // Split name into first_name and last_name for backend
-    const nameParts = data.name.split(" ");
-    const first_name = nameParts[0];
-    const last_name = nameParts.slice(1).join(" ") || "";
-    
-    const response = await api.post<any>("/store/auth/register", {
-      ...data,
-      first_name,
-      last_name
-    });
-    
-    // Backend returns { token, customer, affiliate }
-    // We need to map this to AuthResponse { token, user }
-    const { token, customer } = response.data;
-    
+    // Backend contract (see BACKEND_REQUIREMENTS_NOTE.md):
+    // Body: { email, password, name, referral_code? }
+    // Response: { token, user: { id, email, role, ... } }
+    const response = await api.post<any>("/store/auth/register", data);
+
+    const { token, user: rawUser } = response.data;
+
+    const customer = response.data.customer || rawUser || {};
+
     const user: User = {
       id: customer.id,
       email: customer.email,

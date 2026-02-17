@@ -13,11 +13,15 @@ import { useEffect, useState } from "react";
 import Image from "next/image";
 import { useAuth } from "@/context/auth-context";
 import { Button } from "@/components/ui/button";
+import { usePathname } from "next/navigation";
 
 export function SiteHeader() {
   const [isScrolled, setIsScrolled] = useState(false);
   const [isMobileMenuOpen, setIsMobileMenuOpen] = useState(false);
   const { user } = useAuth();
+  const pathname = usePathname();
+  const isHomePage = pathname === "/";
+  const isWhiteHeader = isScrolled || !isHomePage;
 
   useEffect(() => {
     const handleScroll = () => {
@@ -31,13 +35,13 @@ export function SiteHeader() {
   return (
     <header
       className={`fixed top-0 right-0 left-0 z-50 w-full transition-all duration-300 ${
-        isScrolled
-          ? "border-b border-gray-200 bg-white shadow-sm dark:border-gray-800 dark:bg-gray-900"
+        isWhiteHeader
+          ? "bg-white  dark:border-gray-800 dark:bg-gray-900"
           : "bg-transparent"
       }`}
     >
-      {/* Top Bar - Only visible when not scrolled */}
-      {!isScrolled && (
+      {/* Top Bar - Only visible on home page when not scrolled */}
+      {!isScrolled && isHomePage && (
         <div className="w-full bg-green-900 px-4 py-2 text-[17px] tracking-wide text-white">
           <div className="w-full max-w-full px-6">
             <div className="flex justify-center">
@@ -59,17 +63,17 @@ export function SiteHeader() {
           <Link
             href="/"
             className={`transition-all duration-300 ${
-              isScrolled
+              isWhiteHeader
                 ? "scale-100 opacity-100"
                 : "pointer-events-none absolute scale-95 opacity-0"
             }`}
           >
             <Image
-              src="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
-              alt="Xtra Marketing"
-              width={140}
-              height={70}
-              className="h-auto max-h-20 w-auto"
+              src="/logo.svg"
+              alt="Stream Lifter"
+              width={120}
+              height={60}
+              className="h-auto max-h-14 w-auto"
             />
           </Link>
 
@@ -79,24 +83,24 @@ export function SiteHeader() {
           {/* Desktop Navigation - Right side */}
           <nav
             className={`ml-auto hidden items-center gap-8 transition-all duration-300 md:flex ${
-              isScrolled ? "opacity-100" : "opacity-100"
+              isWhiteHeader ? "opacity-100" : "opacity-100"
             }`}
           >
             <Link
-              href="#"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
+              href="/twitch-promotion"
+              className={`${isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
             >
               Twitch Promotion
             </Link>
             <Link
-              href="#"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
+              href="/contact"
+              className={`${isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
             >
               Contact Us
             </Link>
             <Link
               href="#"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
+              className={`${isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
             >
               Kick Promotion
             </Link>
@@ -105,7 +109,7 @@ export function SiteHeader() {
             {user ? (
               <Link
                 href="/dashboard"
-                className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} flex items-center gap-2 font-semibold transition-colors hover:text-green-400`}
+                className={`${isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"} flex items-center gap-2 font-semibold transition-colors hover:text-green-400`}
               >
                 <LayoutDashboard className="h-5 w-5" />
                 Dashboard
@@ -114,7 +118,7 @@ export function SiteHeader() {
               <div className="flex items-center gap-4">
                 <Link
                   href="/login"
-                  className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
+                  className={`${isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"} text-lg font-semibold transition-colors hover:text-green-400`}
                 >
                   Login
                 </Link>
@@ -129,7 +133,7 @@ export function SiteHeader() {
 
             <Link
               href="/cart"
-              className={`${isScrolled ? "text-gray-900 dark:text-white" : "text-white"} transition-colors hover:text-green-400`}
+              className={`${isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"} transition-colors hover:text-green-400`}
             >
               <ShoppingCart className="h-6 w-6" />
             </Link>
@@ -139,7 +143,7 @@ export function SiteHeader() {
           <button
             onClick={() => setIsMobileMenuOpen(!isMobileMenuOpen)}
             className={`cursor-pointer transition-all duration-300 md:hidden ${
-              isScrolled ? "text-gray-900 dark:text-white" : "text-white"
+              isWhiteHeader ? "text-gray-900 dark:text-white" : "text-white"
             }`}
           >
             {isMobileMenuOpen ? (
@@ -162,7 +166,7 @@ export function SiteHeader() {
                 Twitch Promotion
               </Link>
               <Link
-                href="#"
+                href="/contact"
                 className="px-4 py-2 font-normal text-gray-900 transition-colors hover:text-green-600 dark:text-white dark:hover:text-green-400"
                 onClick={() => setIsMobileMenuOpen(false)}
               >

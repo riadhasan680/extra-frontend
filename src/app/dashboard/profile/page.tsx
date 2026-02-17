@@ -55,7 +55,7 @@ export default function ProfilePage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
       </div>
     );
   }
@@ -100,10 +100,9 @@ export default function ProfilePage() {
           </CardContent>
         </Card>
 
-        {/* Affiliate Link Card */}
-        <Card className="border-purple-200 bg-purple-50/50 dark:border-purple-900 dark:bg-purple-900/20">
+        <Card className="border-green-200 bg-green-50/40 dark:border-green-900 dark:bg-green-900/10">
           <CardHeader>
-            <CardTitle className="text-purple-700 dark:text-purple-300">
+            <CardTitle className="text-green-700 dark:text-green-300">
               Your Affiliate Link
             </CardTitle>
             <CardDescription>

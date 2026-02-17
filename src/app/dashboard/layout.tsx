@@ -74,8 +74,8 @@ export default function UserLayout({
     <div className="flex min-h-screen bg-gray-50 dark:bg-slate-950">
       <PremiumSidebar
         items={sidebarItems}
-        title="Extra Marketing"
-        logoUrl="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
+        title="Stream Lifter"
+        logoUrl="/logo.svg"
         onLogout={handleLogout}
         isMobileOpen={isSidebarOpen}
         onMobileClose={() => setIsSidebarOpen(false)}

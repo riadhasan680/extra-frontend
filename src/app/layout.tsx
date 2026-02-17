@@ -9,7 +9,7 @@ const poppins = Poppins({
 });
 
 export const metadata: Metadata = {
-  title: "Extra Marketing",
+  title: "Stream Lifter",
   description: "Affiliate Marketing Platform",
 };
 

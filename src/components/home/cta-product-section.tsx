@@ -21,6 +21,43 @@ export function CtaProductSection({
   const [loading, setLoading] = useState(!initialProduct);
   const [isBuying, setIsBuying] = useState(false);
 
+  const primaryVariant: ProductVariant | undefined = product?.variants?.[0];
+
+  const parseQuantity = (value: any, fallback: number) => {
+    if (typeof value === "number") {
+      return Number.isFinite(value) && value > 0 ? value : fallback;
+    }
+    if (typeof value === "string") {
+      const parsed = parseInt(value, 10);
+      return Number.isFinite(parsed) && parsed > 0 ? parsed : fallback;
+    }
+    return fallback;
+  };
+
+  const priceEntry =
+    primaryVariant?.prices && primaryVariant.prices.length > 0
+      ? primaryVariant.prices.find((p) => p.currency_code === "usd") ||
+        primaryVariant.prices[0]
+      : undefined;
+
+  const salePrice =
+    priceEntry && typeof priceEntry.amount === "number"
+      ? priceEntry.amount / 100
+      : undefined;
+
+  const originalPrice =
+    salePrice !== undefined
+      ? primaryVariant?.metadata?.original_price_cents != null
+        ? primaryVariant.metadata.original_price_cents / 100
+        : salePrice * 1.5
+      : undefined;
+
+  const durationLabel =
+    (primaryVariant?.metadata &&
+      (primaryVariant.metadata as any).duration_label) ||
+    primaryVariant?.title ||
+    "1 Month";
+
   const { toast } = useToast();
   const router = useRouter();
 
@@ -52,7 +89,6 @@ export function CtaProductSection({
 
     try {
       setIsBuying(true);
-
       // Step 1: Create Cart
       let regionId: string | undefined;
       try {
@@ -71,18 +107,30 @@ export function CtaProductSection({
         console.warn("Failed to fetch regions", e);
       }
 
-      // Step 2: Add Variant to Cart
       if (!product.variants || product.variants.length === 0) {
         throw new Error("Product has no variants available");
       }
-      const variantId = product.variants[0].id;
+      const variant = product.variants[0];
+      const variantMeta = (variant.metadata || {}) as any;
+      const productMeta = (product.metadata || {}) as any;
+
+      const mainQuantity = parseQuantity(
+        variantMeta.bundle_main_quantity ?? productMeta.bundle_main_quantity,
+        1
+      );
+      const extraQuantity = parseQuantity(
+        variantMeta.bundle_extra_quantity ?? productMeta.bundle_extra_quantity,
+        1
+      );
+
+      const variantId = variant.id;
 
       let cart;
       try {
         cart = await storeService.createCart(
           regionId ? { region_id: regionId } : undefined
         );
-        await storeService.addToCart(cart.id, variantId, 1);
+        await storeService.addToCart(cart.id, variantId, mainQuantity);
       } catch (cartError: any) {
         const errMsg = cartError.response?.data?.message || "";
         if (
@@ -93,11 +141,63 @@ export function CtaProductSection({
             "First attempt failed, retrying without explicit region...",
             cartError
           );
-          cart = await storeService.createCart(); // Retry without region
-          await storeService.addToCart(cart.id, variantId, 1);
+          cart = await storeService.createCart();
+          await storeService.addToCart(cart.id, variantId, mainQuantity);
         } else {
           throw cartError;
         }
+      }
+
+      // Step 2b: Optionally add bundled Twitch promotion product to the same cart
+      try {
+        const metadata: any = productMeta;
+
+        const bundledVariantId: string | undefined =
+          metadata.bundle_extra_variant_id;
+
+        const bundledHandle: string | undefined =
+          metadata.bundle_extra_product_handle || metadata.bundle_extra_product_id;
+
+        if (bundledVariantId) {
+          await storeService.addToCart(cart.id, bundledVariantId, extraQuantity);
+        } else if (bundledHandle) {
+          try {
+            const bundledProduct = await storeService.getProduct(bundledHandle);
+            const bundledVariant = bundledProduct.variants?.[0];
+            if (bundledVariant?.id) {
+              await storeService.addToCart(
+                cart.id,
+                bundledVariant.id,
+                extraQuantity
+              );
+            }
+          } catch (bundleError) {
+            console.error("Failed to load bundled product", bundleError);
+          }
+        } else {
+          // Fallback: if no metadata is configured, try to find another Twitch product dynamically
+          try {
+            const allProducts = await storeService.getProducts();
+            const fallback = allProducts.find(
+              (p) =>
+                p.id !== product.id &&
+                p.title.toLowerCase().includes("twitch stream promotion")
+            );
+            const fallbackVariant = fallback?.variants?.[0];
+            if (fallbackVariant?.id) {
+              await storeService.addToCart(
+                cart.id,
+                fallbackVariant.id,
+                extraQuantity
+              );
+            }
+          } catch (fallbackError) {
+            console.error("Failed to add fallback bundled product", fallbackError);
+          }
+        }
+      } catch (bundleError) {
+        console.error("Bundled product step failed", bundleError);
+        // Do not block checkout if bundle step fails – user still gets the Unlimited package
       }
 
       // Step 3: Apply Affiliate (if exists in localStorage)
@@ -115,11 +215,16 @@ export function CtaProductSection({
 
       // Step 4: Redirect to Cart (Step 1 of flow)
       router.push(`/cart?cart_id=${cart.id}`);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Buy It Now failed", error);
+      const backendMessage =
+        error?.response?.data?.message ||
+        error?.response?.data?.error?.message;
       toast({
         title: "Error",
-        description: "Failed to process request. Please try again.",
+        description:
+          backendMessage ||
+          "Failed to process request. Please try again.",
         variant: "destructive",
       });
     } finally {
@@ -170,9 +275,9 @@ export function CtaProductSection({
           <div className="grid items-center gap-12 md:grid-cols-2">
             {/* Left - Product Images */}
             <div className="relative flex justify-center">
-              <div className="group perspective-1000 relative h-72 w-56 -rotate-3 transform transition-transform duration-500 hover:rotate-0">
+              <div className="group perspective-1000 relative h-[500px] w-full">
                 {/* CSS 3D Box Mockup */}
-                <div className="absolute inset-0 flex flex-col items-center justify-center overflow-hidden rounded-lg border border-green-400/30 bg-gradient-to-br from-[#22c55e] to-[#16a34a] p-1 text-white shadow-2xl">
+                <div className="absolute   inset-0 flex flex-col items-center justify-center overflow-hidden">
                   <img
                     src={
                       product?.images && product.images.length > 0
@@ -180,7 +285,7 @@ export function CtaProductSection({
                         : "/product-placeholder.svg"
                     }
                     alt={product?.title || "Product"}
-                    className="h-full w-full rounded object-cover"
+                    className="h-full   rounded object-cover"
                   />
                 </div>
                 {/* Shadow */}
@@ -191,19 +296,19 @@ export function CtaProductSection({
             {/* Right - Product Details */}
             <div className="space-y-8">
               <h3 className="text-4xl leading-tight font-normal text-gray-900">
-                UNLIMITED Twitch Stream
-                <br />
-                Promotion - Embedding -<br />
-                One Month (Recurring)
+                {product?.title ||
+                  "UNLIMITED Twitch Stream Promotion - Embedding - One Month (Recurring)"}
               </h3>
 
               {/* Price */}
               <div className="flex items-baseline gap-3">
-                <span className="text-xl font-bold text-gray-900 line-through">
-                  $659.95
-                </span>
+                {originalPrice !== undefined && (
+                  <span className="text-xl font-bold text-gray-900 line-through">
+                    ${originalPrice.toFixed(2)}
+                  </span>
+                )}
                 <span className="text-xl font-bold text-[#22c55e]">
-                  $250.00
+                  {salePrice !== undefined ? `$${salePrice.toFixed(2)}` : "$0.00"}
                 </span>
               </div>
 
@@ -211,7 +316,7 @@ export function CtaProductSection({
               <div>
                 <p className="mb-2 text-sm text-gray-600">Day</p>
                 <div className="inline-block rounded-sm bg-[#22c55e] px-8 py-2 font-medium text-white">
-                  1 Month
+                  {durationLabel}
                 </div>
               </div>
 

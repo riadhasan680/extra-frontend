@@ -1,6 +1,6 @@
-# Backend Integration Guide - Extra Marketing
+# Backend Integration Guide - Stream Lifter
 
-This project is the frontend for the Extra Marketing Affiliate Platform.
+This project is the frontend for the Stream Lifter Affiliate Platform.
 
 ## 🛠 Tech Stack
 

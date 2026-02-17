@@ -16,7 +16,7 @@ export function VideoSection() {
             <iframe
               className="absolute inset-0 h-full w-full"
               src="https://www.youtube.com/embed/dQw4w9WgXcQ"
-              title="Xtra Life Marketing - A Closer Look"
+              title="Stream Lifter - A Closer Look"
               allow="accelerometer; autoplay; clipboard-write; encrypted-media; gyroscope; picture-in-picture"
               allowFullScreen
             ></iframe>
@@ -39,11 +39,11 @@ export function VideoSection() {
           <div className="flex items-center justify-between bg-gray-900 px-6 py-4 text-white">
             <div className="flex items-center gap-3">
               <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-green-500 to-green-600">
-                <span className="text-sm font-bold">XL</span>
+                <span className="text-sm font-bold">SL</span>
               </div>
               <div>
                 <p className="text-sm font-semibold">
-                  Xtra Life Marketing - A Closer Look
+                  Stream Lifter - A Closer Look
                 </p>
               </div>
             </div>

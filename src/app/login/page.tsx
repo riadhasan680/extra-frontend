@@ -74,20 +74,20 @@ export default function LoginPage() {
       <div className="absolute inset-0 overflow-hidden">
         <div className="absolute top-20 -left-4 h-72 w-72 animate-pulse rounded-full bg-green-300 opacity-20 blur-3xl" />
         <div className="absolute -right-4 bottom-20 h-96 w-96 animate-pulse rounded-full bg-green-400 opacity-20 blur-3xl delay-1000" />
-        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-green-200 opacity-10 blur-3xl delay-500" />
+        <div className="absolute top-1/2 left-1/2 h-80 w-80 -translate-x-1/2 -translate-y-1/2 animate-pulse rounded-full bg-green-200 opacity-10 blur-xl delay-500" />
       </div>
 
       {/* Content */}
       <div className="relative z-10 w-full max-w-md">
         {/* Brand Logo */}
         <Link href="/" className="mb-8 flex justify-center">
-          <div className="rounded-2xl bg-white/80 p-4   backdrop-blur-sm transition-transform hover:scale-105">
+          <div>
             <Image
-              src="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
-              alt="Xtra Marketing"
-              width={180}
+              src="/logo.svg"
+              alt="Stream Lifter"
+              width={100}
               height={90}
-              className="h-auto w-auto"
+              className="h-auto w-64"
             />
           </div>
         </Link>

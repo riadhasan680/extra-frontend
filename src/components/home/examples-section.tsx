@@ -45,7 +45,7 @@ export function ExamplesSection() {
         </div>
 
         {/* CTA Section */}
-        <div className="rounded-3xl bg-gradient-to-br from-green-50 to-green-100/50 p-12 text-center">
+        <div className="rounded-3xl bg-gradient-to-br from-green-50 to-green-100/30 p-12 text-center">
           <h3 className="mb-6 text-3xl font-bold text-gray-900 md:text-4xl">
             So What Are You Waiting For❔
           </h3>

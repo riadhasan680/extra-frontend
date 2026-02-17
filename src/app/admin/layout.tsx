@@ -70,7 +70,7 @@ export default function AdminLayout({
       <PremiumSidebar
         items={sidebarItems}
         title="Admin Panel"
-        logoUrl="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
+        logoUrl="/logo.svg"
         onLogout={handleLogout}
         isMobileOpen={isSidebarOpen}
         onMobileClose={() => setIsSidebarOpen(false)}

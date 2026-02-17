@@ -5,7 +5,7 @@ export function ReasonsSection() {
     {
       title: "Only Real Viewers",
       description:
-        "We use real targeted advertisements to bring in actual human eyes on your stream. Xtra Life Marketing does not participate in bots of any sort, using those types of services will result in Twitch bans and/or Twitch Affiliate and Partner program rejections.",
+        "We use real targeted advertisements to bring in actual human eyes on your stream. Stream Lifter does not participate in bots of any sort, using those types of services will result in Twitch bans and/or Twitch Affiliate and Partner program rejections.",
     },
     {
       title: "Trackable Results",
@@ -35,7 +35,7 @@ export function ReasonsSection() {
             </svg>
           </div>
           <h2 className="text-4xl font-bold text-gray-900 md:text-5xl">
-            Why Choose Xtra Marketing?
+            Why Choose Stream Lifter?
           </h2>
           <p className="mt-4 text-lg text-gray-600">
             The smart choice for authentic Twitch growth

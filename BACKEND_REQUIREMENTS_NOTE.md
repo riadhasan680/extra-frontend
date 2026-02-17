@@ -1,4 +1,4 @@
-# Backend Developer Requirements for Extra Marketing Platform
+# Backend Developer Requirements for Stream Lifter Platform
 
 ## 🟢 Overview
 

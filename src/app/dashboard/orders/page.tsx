@@ -23,12 +23,12 @@ export default function OrdersPage() {
   const { toast } = useToast();
 
   useEffect(() => {
-    fetchSales();
+    fetchOrders();
   }, []);
 
-  const fetchSales = async () => {
+  const fetchOrders = async () => {
     try {
-      const data = await storeService.getSales();
+      const data = await storeService.getOrders();
       setOrders(data || []);
     } catch (error) {
       console.error("Failed to fetch sales", error);
@@ -44,7 +44,7 @@ export default function OrdersPage() {
         title: "Order Cancelled",
         description: "The order has been successfully cancelled.",
       });
-      fetchSales(); // Refresh list
+      fetchOrders();
     } catch (error) {
       console.error("Failed to cancel order", error);
       toast({
@@ -58,7 +58,7 @@ export default function OrdersPage() {
   if (loading) {
     return (
       <div className="flex h-64 items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-purple-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-green-600" />
       </div>
     );
   }
@@ -100,7 +100,7 @@ export default function OrdersPage() {
                     <TableCell>{formatDate(order.createdAt)}</TableCell>
                     <TableCell className="text-right">{formatCurrency(order.amount)}</TableCell>
                     <TableCell className="text-right font-semibold text-green-600">
-                      {formatCurrency(order.commissionAmount)}
+                      {formatCurrency(order.commissionAmount || 0)}
                     </TableCell>
                     <TableCell className="text-right">
                       <span className={`inline-flex items-center rounded-full px-2.5 py-0.5 text-xs font-medium ${

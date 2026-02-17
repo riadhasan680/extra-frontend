@@ -1,6 +1,6 @@
 # API Endpoints Mapping
 
-This document outlines the expected API endpoints for the Extra Marketing frontend.
+This document outlines the expected API endpoints for the Stream Lifter frontend.
 
 ## 🔐 Authentication
 

@@ -7,37 +7,30 @@ import { Mail } from "lucide-react";
 
 export function SiteFooter() {
   return (
-    <footer className="relative overflow-hidden bg-green-900 pt-16 pb-6 text-white">
+    <footer className="relative overflow-hidden bg-white pt-16 pb-6 text-gray-900 border-t border-green-100">
       <div className="container mx-auto max-w-7xl px-6">
         <div className="mb-16 grid gap-8 md:grid-cols-4">
           {/* Logo & Brand */}
           <div className="flex flex-col items-start">
             <div className="mb-6">
-              {/* Using CSS Logo to match style if image fails, but mimicking the colorful poly head */}
-              <div className="relative h-24 w-24">
-                <div className="clip-path-polygon absolute inset-0 rounded-full bg-gradient-to-br from-yellow-400 via-green-500 to-green-600 p-1">
-                  <div className="flex h-full w-full items-center justify-center rounded-full bg-green-900">
-                    <span className="text-4xl">🎮</span>
-                  </div>
-                </div>
-                {/* Or prefer actual image if available */}
+              <Link href="/" className="block">
                 <img
-                  src="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
-                  alt="Xtra Logo"
-                  className="h-16 w-auto object-contain"
+                  src="/logo.svg"
+                  alt="Stream Lifter Logo"
+                  className="h-20 w-auto object-contain"
                 />
-              </div>
+              </Link>
             </div>
           </div>
 
           {/* Quick Links */}
           <div>
-            <h3 className="mb-6 text-lg font-normal text-white">Quick Links</h3>
+            <h3 className="mb-6 text-lg font-semibold text-gray-900">Quick Links</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-green-200"
+                  className="font-light text-gray-600 transition-colors hover:text-green-600"
                 >
                   Privacy Policy
                 </Link>
@@ -45,7 +38,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-green-200"
+                  className="font-light text-gray-600 transition-colors hover:text-green-600"
                 >
                   Refund Policy
                 </Link>
@@ -53,7 +46,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-green-200"
+                  className="font-light text-gray-600 transition-colors hover:text-green-600"
                 >
                   Terms of Service
                 </Link>
@@ -63,20 +56,20 @@ export function SiteFooter() {
 
           {/* Menu */}
           <div>
-            <h3 className="mb-6 text-lg font-normal text-white">Menu</h3>
+            <h3 className="mb-6 text-lg font-semibold text-gray-900">Menu</h3>
             <ul className="space-y-3 text-sm">
               <li>
                 <Link
-                  href="#"
-                  className="font-light text-white transition-colors hover:text-purple-200"
+                  href="/twitch-promotion"
+                  className="font-light text-gray-600 transition-colors hover:text-green-600"
                 >
                   Twitch Promotion
                 </Link>
               </li>
               <li>
                 <Link
-                  href="#"
-                  className="font-light text-white transition-colors hover:text-purple-200"
+                  href="/contact"
+                  className="font-light text-gray-600 transition-colors hover:text-green-600"
                 >
                   Contact Us
                 </Link>
@@ -84,7 +77,7 @@ export function SiteFooter() {
               <li>
                 <Link
                   href="#"
-                  className="font-light text-white transition-colors hover:text-purple-200"
+                  className="font-light text-gray-600 transition-colors hover:text-green-600"
                 >
                   Kick Promotion
                 </Link>
@@ -94,7 +87,7 @@ export function SiteFooter() {
 
           {/* Newsletter */}
           <div>
-            <h3 className="mb-6 text-lg leading-tight font-normal">
+            <h3 className="mb-6 text-lg leading-tight font-semibold text-gray-900">
               Subscribe for Exclusive Discounts
               <br />
               and Updates
@@ -103,9 +96,9 @@ export function SiteFooter() {
               <Input
                 type="email"
                 placeholder="Your email"
-                className="h-full rounded-l-sm rounded-r-none border-none bg-green-800 px-4 text-white placeholder:text-green-200 focus-visible:ring-0"
+                className="h-full rounded-l-sm rounded-r-none border border-green-200 bg-green-50 px-4 text-gray-900 placeholder:text-gray-500 focus-visible:ring-1 focus-visible:ring-green-500"
               />
-              <Button className="flex h-full w-12 shrink-0 items-center justify-center rounded-l-none rounded-r-sm bg-white text-green-800 hover:bg-gray-100">
+              <Button className="flex h-full w-12 shrink-0 items-center justify-center rounded-l-none rounded-r-sm bg-green-600 text-white hover:bg-green-700">
                 <Mail className="h-5 w-5" />
               </Button>
             </div>
@@ -116,7 +109,7 @@ export function SiteFooter() {
         <div className="mt-12 flex flex-col items-center justify-between gap-6 pt-0 md:flex-row">
           {/* Copyright */}
           <p className="text-xs font-light text-white">
-            Copyright © 2026 Xtra Life Marketing
+            Copyright © 2026 Stream Lifter
           </p>
 
           {/* Payment Methods */}

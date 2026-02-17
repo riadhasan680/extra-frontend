@@ -1,5 +1,5 @@
 import api from "@/lib/api";
-import { Product, ApiResponse } from "@/types/api";
+import { Product, ApiResponse, Order } from "@/types/api";
 
 export const storeService = {
   // List all products (public)
@@ -16,8 +16,9 @@ export const storeService = {
       let products = response.data.products;
       
       // Filter by metadata in client-side since API rejected metadata param
+      // Note: Removed hardcoded 'extra-life' filter to support all products or new brand 'stream-lifter'
       if (products) {
-         products = products.filter(p => p.metadata && p.metadata.ui_style === 'extra-life');
+         // products = products.filter(p => p.metadata && p.metadata.ui_style === 'extra-life');
       }
       
       // Strict Mode: Return exactly what API gives.
@@ -83,25 +84,53 @@ export const storeService = {
     }
   },
 
-  // Dashboard Stats
-  getDashboardStats: async () => {
+  getDashboardStats: async (): Promise<import("@/types/api").DashboardStats> => {
     try {
       const response = await api.get("/store/dashboard/stats");
       return response.data;
     } catch (error) {
       console.warn("API failed to get dashboard stats", error);
-      // Return zeros instead of fake numbers
-      return { revenue: 0, orders: 0, conversion: 0 };
+      return {
+        totalOrders: 0,
+        activeOrders: 0,
+        completedOrders: 0,
+        commissionBalance: 0,
+        totalSales: 0,
+      };
     }
   },
 
-  // Sales
-  getSales: async () => {
+  getSales: async (): Promise<Order[]> => {
     try {
       const response = await api.get("/store/dashboard/sales");
-      return response.data.sales || response.data.orders || [];
+      const raw = response.data.sales || response.data.orders || [];
+      const list = Array.isArray(raw) ? raw : [];
+      return list.map((o: any): Order => ({
+        id: o.id,
+        amount: ((o.total ?? o.amount) || 0) / 100,
+        commissionAmount: o.commission_amount ?? o.commissionAmount ?? 0,
+        status: o.status ?? "pending",
+        createdAt: o.created_at ?? o.createdAt ?? new Date().toISOString(),
+        productId: o.product_id ?? o.productId,
+        userId: o.user_id ?? o.userId,
+      }));
     } catch (error) {
-      return [];
+      try {
+        const fallback = await api.get("/store/orders");
+        const raw = fallback.data.orders || fallback.data || [];
+        const list = Array.isArray(raw) ? raw : [];
+        return list.map((o: any): Order => ({
+          id: o.id,
+          amount: ((o.total ?? o.amount) || 0) / 100,
+          commissionAmount: o.commission_amount ?? o.commissionAmount ?? 0,
+          status: o.status ?? "pending",
+          createdAt: o.created_at ?? o.createdAt ?? new Date().toISOString(),
+          productId: o.product_id ?? o.productId,
+          userId: o.user_id ?? o.userId,
+        }));
+      } catch {
+        return [];
+      }
     }
   },
 
@@ -145,11 +174,20 @@ export const storeService = {
     }
   },
 
-  // Orders (for cancellation)
-  getOrders: async () => {
+  getOrders: async (): Promise<Order[]> => {
     try {
       const response = await api.get("/store/orders");
-      return response.data.orders || response.data || [];
+      const raw = response.data.orders || response.data || [];
+      const list = Array.isArray(raw) ? raw : [];
+      return list.map((o: any): Order => ({
+        id: o.id,
+        amount: ((o.total ?? o.amount) || 0) / 100,
+        commissionAmount: o.commission_amount ?? o.commissionAmount ?? 0,
+        status: o.status ?? "pending",
+        createdAt: o.created_at ?? o.createdAt ?? new Date().toISOString(),
+        productId: o.product_id ?? o.productId,
+        userId: o.user_id ?? o.userId,
+      }));
     } catch (error) {
       return [];
     }

@@ -15,14 +15,12 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Loader2, Mail, Lock, User, Chrome } from "lucide-react";
 import { useState } from "react";
-import { useRouter } from "next/navigation";
 import { useToast } from "@/components/ui/toast";
 import { useAuth } from "@/context/auth-context";
 
 export default function RegisterPage() {
   const [isLoading, setIsLoading] = useState(false);
   const [isGoogleLoading, setIsGoogleLoading] = useState(false);
-  const router = useRouter();
   const { addToast } = useToast();
   const { register } = useAuth();
 
@@ -97,13 +95,13 @@ export default function RegisterPage() {
       <div className="relative z-10 w-full max-w-md">
         {/* Brand Logo */}
         <Link href="/" className="mb-8 flex justify-center">
-          <div className="rounded-2xl bg-white/80 p-4 backdrop-blur-sm transition-transform hover:scale-105">
+          <div>
             <Image
-              src="https://xtralifemarketing.com/cdn/shop/files/logo_x70.png?v=1614342404"
-              alt="Xtra Marketing"
+              src="/logo.svg"
+              alt="Stream Lifter"
               width={180}
               height={90}
-              className="h-auto w-auto"
+              className="h-auto w-64"
             />
           </div>
         </Link>
@@ -114,7 +112,7 @@ export default function RegisterPage() {
               Create Account
             </CardTitle>
             <CardDescription className="text-base text-gray-600">
-              Join Extra Marketing to boost your channel
+              Join Stream Lifter to boost your channel
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-5">
@@ -222,7 +220,7 @@ export default function RegisterPage() {
 
               <Button
                 type="submit"
-                className="mt-2 w-full cursor-pointer bg-linear-to-r from-green-600 to-green-700 py-6 font-normal tracking-wider text-white shadow-lg shadow-green-500/30 transition-all hover:from-green-700 hover:to-green-800 hover:shadow-xl hover:shadow-green-500/40"
+                className="mt-2 w-full cursor-pointer bg-gradient-to-r from-green-600 to-green-700 py-6 text-white tracking-wider font-semibold shadow-lg shadow-green-500/30 transition-all hover:from-green-700 hover:to-green-800 hover:shadow-xl hover:shadow-green-500/40"
                 disabled={isLoading || isGoogleLoading}
               >
                 {isLoading ? (

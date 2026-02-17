@@ -85,7 +85,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       addToast({
         type: "success",
         title: "Account created!",
-        description: "Welcome to Extra Marketing.",
+        description: "Welcome to Stream Lifter.",
       });
 
       router.push("/dashboard");

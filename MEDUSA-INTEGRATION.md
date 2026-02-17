@@ -1,8 +1,8 @@
-# Medusa Backend Integration Guide - Extra Marketing
+# Medusa Backend Integration Guide - Stream Lifter
 
 ## 📋 Overview
 
-This document outlines the complete backend requirements and Medusa integration steps for the Extra Marketing Affiliate Platform.
+This document outlines the complete backend requirements and Medusa integration steps for the Stream Lifter Affiliate Platform.
 
 ---
 
